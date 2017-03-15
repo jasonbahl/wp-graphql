@@ -1,6 +1,6 @@
 #WPGraphQL 
 
-<a href="https://www.wpgraphql.com" target="_blank">Website</a> • <a href="https://www.gitbook.com/book/wp-graphql/wp-graphql/" target="_blank">Docs</a>
+<a href="https://www.wpgraphql.com" target="_blank">Website</a> • <a href="https://www.gitbook.com/book/wp-graphql/wp-graphql/" target="_blank">Docs</a> • <a href="https://slackin-wpgraphql.herokuapp.com/" target="_blank">Slack</a>
 
 GraphQL API for WordPress.
 
@@ -121,8 +121,10 @@ of GraphQL queries using WPGraphQL here:
 To run unit tests during development, you'll first need a testing database that you'd like to use. 
 
 Open the command line and navigate to the plugin's directory. From within the plugin directory, run the following 
-command to install the test suite, filling in the parameters appropriately to link to an existing test database or to
+commands to install the test suite, filling in the parameters appropriately to link to an existing test database or to
 create a new test database:
+
+`composer install`
 
 `bin/install-wp-tests.sh <db-name> <db-user> <db-pass> [db-host] [wp-version] [skip-database-creation]`
 
