@@ -412,8 +412,9 @@ class DataSource {
 								 * Add a filter to allow externally registered node types to resolve based on
 								 * the id_components
 								 *
-								 * @param int    $id    The id of the node, from the global ID
-								 * @param string $type  The type of node to resolve, from the global ID
+								 * @param mixed|null|object  $node   The $node object that should be returned
+								 * @param int                $id     The id of the node, from the global ID
+								 * @param string             $type   The type of node to resolve, from the global ID
 								 *
 								 * @since 0.0.6
 								 */

@@ -96,8 +96,8 @@ class WP_GraphQL_Test_Post_Object_Queries extends WP_UnitTestCase {
 		 * Create the query string to pass to the $query
 		 */
 		$query = "
-		query { 
-			post(id: \"{$global_id}\") { 
+		query {
+			post(id: \"{$global_id}\") {
 				id
 				author{
 					userId
@@ -121,12 +121,11 @@ class WP_GraphQL_Test_Post_Object_Queries extends WP_UnitTestCase {
 				excerpt
 				link
 				menuOrder
-				mimeType
 				postId
 				slug
 				toPing
 				title
-			} 
+			}
 		}";
 
 		/**
@@ -163,7 +162,6 @@ class WP_GraphQL_Test_Post_Object_Queries extends WP_UnitTestCase {
 					'excerpt' => apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', 'Test excerpt' ) ),
 					'link' => get_permalink( $post_id ),
 					'menuOrder' => null,
-					'mimeType' => null,
 					'postId' => $post_id,
 					'slug' => 'test-title',
 					'toPing' => false,
