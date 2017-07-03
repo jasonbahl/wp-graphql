@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit1e072e261675e0b8440f1da532408811
+class ComposerStaticInit28037f07101cef62b4b4de94b9c69773
 {
     public static $files = array (
         'c594688b3441835d5575f3085da4a242' => __DIR__ . '/..' . '/webonyx/graphql-php/src/deprecated.php',
@@ -14,6 +14,11 @@ class ComposerStaticInit1e072e261675e0b8440f1da532408811
         'W' => 
         array (
             'WPGraphQL\\' => 10,
+        ),
+        'O' => 
+        array (
+            'Overblog\\PromiseAdapter\\' => 24,
+            'Overblog\\DataLoader\\' => 20,
         ),
         'G' => 
         array (
@@ -25,6 +30,14 @@ class ComposerStaticInit1e072e261675e0b8440f1da532408811
         'WPGraphQL\\' => 
         array (
             0 => __DIR__ . '/../..' . '/src',
+        ),
+        'Overblog\\PromiseAdapter\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/overblog/dataloader-php/lib/promise-adapter/src',
+        ),
+        'Overblog\\DataLoader\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/overblog/dataloader-php/src',
         ),
         'GraphQL\\' => 
         array (
@@ -45,6 +58,7 @@ class ComposerStaticInit1e072e261675e0b8440f1da532408811
         'GraphQL\\Error\\FormattedError' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Error/FormattedError.php',
         'GraphQL\\Error\\InvariantViolation' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Error/InvariantViolation.php',
         'GraphQL\\Error\\SyntaxError' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Error/SyntaxError.php',
+        'GraphQL\\Error\\UserError' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Error/UserError.php',
         'GraphQL\\Executor\\ExecutionContext' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Executor/ExecutionContext.php',
         'GraphQL\\Executor\\ExecutionResult' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Executor/ExecutionResult.php',
         'GraphQL\\Executor\\Executor' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Executor/Executor.php',
@@ -158,6 +172,7 @@ class ComposerStaticInit1e072e261675e0b8440f1da532408811
         'GraphQL\\Validator\\Rules\\AbstractQuerySecurity' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/AbstractQuerySecurity.php',
         'GraphQL\\Validator\\Rules\\ArgumentsOfCorrectType' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/ArgumentsOfCorrectType.php',
         'GraphQL\\Validator\\Rules\\DefaultValuesOfCorrectType' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/DefaultValuesOfCorrectType.php',
+        'GraphQL\\Validator\\Rules\\DisableIntrospection' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/DisableIntrospection.php',
         'GraphQL\\Validator\\Rules\\FieldsOnCorrectType' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/FieldsOnCorrectType.php',
         'GraphQL\\Validator\\Rules\\FragmentsOnCompositeTypes' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/FragmentsOnCompositeTypes.php',
         'GraphQL\\Validator\\Rules\\KnownArgumentNames' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/KnownArgumentNames.php',
@@ -184,6 +199,14 @@ class ComposerStaticInit1e072e261675e0b8440f1da532408811
         'GraphQL\\Validator\\Rules\\VariablesAreInputTypes' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/VariablesAreInputTypes.php',
         'GraphQL\\Validator\\Rules\\VariablesInAllowedPosition' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/VariablesInAllowedPosition.php',
         'GraphQL\\Validator\\ValidationContext' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/ValidationContext.php',
+        'Overblog\\DataLoader\\CacheMap' => __DIR__ . '/..' . '/overblog/dataloader-php/src/CacheMap.php',
+        'Overblog\\DataLoader\\DataLoader' => __DIR__ . '/..' . '/overblog/dataloader-php/src/DataLoader.php',
+        'Overblog\\DataLoader\\Option' => __DIR__ . '/..' . '/overblog/dataloader-php/src/Option.php',
+        'Overblog\\DataLoader\\Promise\\Adapter\\Webonyx\\GraphQL\\SyncPromiseAdapter' => __DIR__ . '/..' . '/overblog/dataloader-php/src/Promise/Adapter/Webonyx/GraphQL/SyncPromiseAdapter.php',
+        'Overblog\\PromiseAdapter\\Adapter\\GuzzleHttpPromiseAdapter' => __DIR__ . '/..' . '/overblog/dataloader-php/lib/promise-adapter/src/Adapter/GuzzleHttpPromiseAdapter.php',
+        'Overblog\\PromiseAdapter\\Adapter\\ReactPromiseAdapter' => __DIR__ . '/..' . '/overblog/dataloader-php/lib/promise-adapter/src/Adapter/ReactPromiseAdapter.php',
+        'Overblog\\PromiseAdapter\\Adapter\\WebonyxGraphQLSyncPromiseAdapter' => __DIR__ . '/..' . '/overblog/dataloader-php/lib/promise-adapter/src/Adapter/WebonyxGraphQLSyncPromiseAdapter.php',
+        'Overblog\\PromiseAdapter\\PromiseAdapterInterface' => __DIR__ . '/..' . '/overblog/dataloader-php/lib/promise-adapter/src/PromiseAdapterInterface.php',
         'WPGraphQL\\AppContext' => __DIR__ . '/../..' . '/src/AppContext.php',
         'WPGraphQL\\Data\\Config' => __DIR__ . '/../..' . '/src/Data/Config.php',
         'WPGraphQL\\Data\\ConnectionResolver' => __DIR__ . '/../..' . '/src/Data/ConnectionResolver.php',
@@ -248,9 +271,9 @@ class ComposerStaticInit1e072e261675e0b8440f1da532408811
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit1e072e261675e0b8440f1da532408811::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit1e072e261675e0b8440f1da532408811::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit1e072e261675e0b8440f1da532408811::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit28037f07101cef62b4b4de94b9c69773::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit28037f07101cef62b4b4de94b9c69773::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit28037f07101cef62b4b4de94b9c69773::$classMap;
 
         }, null, ClassLoader::class);
     }
