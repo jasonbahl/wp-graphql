@@ -11,6 +11,12 @@ vendor/ivome/*
 !vendor/ivome/graphql-relay-php/
 vendor/ivome/graphql-relay-php/*
 !vendor/ivome/graphql-relay-php/src/
+!vendor/overblog/
+vendor/overblog/dataloader-php/
+!vendor/overblog/dataloader-php/src*
+!vendor/overblog/dataloader-php/lib
+vendor/overblog/dataloader-php/lib/*
+!vendor/overblog/dataloader-php/lib/promise-adapter/src
 !vendor/autoload.php
 !vendor/composer
 vendor/composer/installed.json
