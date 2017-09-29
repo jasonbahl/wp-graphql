@@ -200,6 +200,7 @@ class PostObjectConnectionResolver extends ConnectionResolver {
 	 * @return \WP_Query
 	 */
 	public static function get_query( $query_args ) {
+		$query_args['fields'] = 'ids';
 		$query = new \WP_Query( $query_args );
 
 		return $query;

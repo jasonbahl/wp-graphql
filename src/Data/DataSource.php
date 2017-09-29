@@ -150,11 +150,11 @@ class DataSource {
 	 * @return \WP_Post
 	 * @access public
 	 */
-	public static function resolve_post_object( $id, $post_type ) {
+	public static function resolve_post_object( $id ) {
 
 		$post_object = \WP_Post::get_instance( $id );
 		if ( empty( $post_object ) ) {
-			throw new UserError( sprintf( __( 'No %1$s was found with the ID: %2$s', 'wp-graphql' ), $id, $post_type ) );
+			throw new \Exception( sprintf( __( 'No object was found with the ID: %2$s', 'wp-graphql' ), $id ) );
 		}
 
 		/**
