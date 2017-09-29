@@ -3,6 +3,7 @@
 namespace WPGraphQL\Type\PostObject\Mutation;
 
 use GraphQLRelay\Relay;
+use WPGraphQL\Data\DataSource;
 use WPGraphQL\Types;
 
 /**
@@ -44,7 +45,8 @@ class PostObjectCreate {
 					$post_type_object->graphql_single_name => [
 						'type'    => Types::post_object( $post_type_object->name ),
 						'resolve' => function( $payload ) {
-							return get_post( $payload['id'] );
+							$post = get_post( $payload['id'] );
+							return ! empty( $post->ID ) ? DataSource::resolve_post_object( $post->ID, $post->post_type ) : null;
 						},
 					],
 				],

@@ -3,6 +3,7 @@
 namespace WPGraphQL\Type\MediaItem\Mutation;
 
 use GraphQLRelay\Relay;
+use WPGraphQL\Data\DataSource;
 use WPGraphQL\Types;
 
 /**
@@ -41,7 +42,8 @@ class MediaItemUpdate {
 				'mediaItem' => [
 					'type'    => Types::post_object( $post_type_object->name ),
 					'resolve' => function( $payload ) {
-						return get_post( $payload['postObjectId'] );
+						$post = get_post( $payload['postObjectId'] );
+						return ! empty( $post->ID ) ? DataSource::resolve_post_object( $post->ID, $post->post_type ) : null;
 					},
 				],
 			],

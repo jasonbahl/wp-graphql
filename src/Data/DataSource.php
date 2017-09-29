@@ -151,7 +151,7 @@ class DataSource {
 	 */
 	public static function resolve_post_object( $id, $post_type ) {
 
-		$post_object = \WP_Post::get_instance( $id );
+		$post_object = ! empty( $id ) ? \WP_Post::get_instance( $id ) : null;
 		if ( empty( $post_object ) ) {
 			throw new \Exception( sprintf( __( 'No %1$s was found with the ID: %2$s', 'wp-graphql' ), $id, $post_type ) );
 		}
@@ -163,10 +163,12 @@ class DataSource {
 		 *
 		 * @since 0.0.18
 		 */
+		$prev_global = ! empty( $GLOBALS['post'] ) ? $GLOBALS['post'] : '';
 		$GLOBALS['post'] = $post_object;
 		setup_postdata( $post_object );
-
-		return $post_object;
+		$output = $post_object;
+		$GLOBALS['post'] = $prev_global;
+		return $output;
 
 	}
 

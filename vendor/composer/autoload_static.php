@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticIniteb2745926fd3fad8e88a340a3f270fca
+class ComposerStaticInit56afbfac5834cbf869473c1f9d3722f6
 {
     public static $files = array (
         'c594688b3441835d5575f3085da4a242' => __DIR__ . '/..' . '/webonyx/graphql-php/src/deprecated.php',
@@ -14,6 +14,11 @@ class ComposerStaticIniteb2745926fd3fad8e88a340a3f270fca
         'W' => 
         array (
             'WPGraphQL\\' => 10,
+        ),
+        'O' => 
+        array (
+            'Overblog\\PromiseAdapter\\' => 24,
+            'Overblog\\DataLoader\\' => 20,
         ),
         'G' => 
         array (
@@ -25,6 +30,14 @@ class ComposerStaticIniteb2745926fd3fad8e88a340a3f270fca
         'WPGraphQL\\' => 
         array (
             0 => __DIR__ . '/../..' . '/src',
+        ),
+        'Overblog\\PromiseAdapter\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/overblog/dataloader-php/lib/promise-adapter/src',
+        ),
+        'Overblog\\DataLoader\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/overblog/dataloader-php/src',
         ),
         'GraphQL\\' => 
         array (
@@ -186,6 +199,14 @@ class ComposerStaticIniteb2745926fd3fad8e88a340a3f270fca
         'GraphQL\\Validator\\Rules\\VariablesAreInputTypes' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/VariablesAreInputTypes.php',
         'GraphQL\\Validator\\Rules\\VariablesInAllowedPosition' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/VariablesInAllowedPosition.php',
         'GraphQL\\Validator\\ValidationContext' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/ValidationContext.php',
+        'Overblog\\DataLoader\\CacheMap' => __DIR__ . '/..' . '/overblog/dataloader-php/src/CacheMap.php',
+        'Overblog\\DataLoader\\DataLoader' => __DIR__ . '/..' . '/overblog/dataloader-php/src/DataLoader.php',
+        'Overblog\\DataLoader\\Option' => __DIR__ . '/..' . '/overblog/dataloader-php/src/Option.php',
+        'Overblog\\DataLoader\\Promise\\Adapter\\Webonyx\\GraphQL\\SyncPromiseAdapter' => __DIR__ . '/..' . '/overblog/dataloader-php/src/Promise/Adapter/Webonyx/GraphQL/SyncPromiseAdapter.php',
+        'Overblog\\PromiseAdapter\\Adapter\\GuzzleHttpPromiseAdapter' => __DIR__ . '/..' . '/overblog/dataloader-php/lib/promise-adapter/src/Adapter/GuzzleHttpPromiseAdapter.php',
+        'Overblog\\PromiseAdapter\\Adapter\\ReactPromiseAdapter' => __DIR__ . '/..' . '/overblog/dataloader-php/lib/promise-adapter/src/Adapter/ReactPromiseAdapter.php',
+        'Overblog\\PromiseAdapter\\Adapter\\WebonyxGraphQLSyncPromiseAdapter' => __DIR__ . '/..' . '/overblog/dataloader-php/lib/promise-adapter/src/Adapter/WebonyxGraphQLSyncPromiseAdapter.php',
+        'Overblog\\PromiseAdapter\\PromiseAdapterInterface' => __DIR__ . '/..' . '/overblog/dataloader-php/lib/promise-adapter/src/PromiseAdapterInterface.php',
         'WPGraphQL\\AppContext' => __DIR__ . '/../..' . '/src/AppContext.php',
         'WPGraphQL\\Data\\Config' => __DIR__ . '/../..' . '/src/Data/Config.php',
         'WPGraphQL\\Data\\ConnectionResolver' => __DIR__ . '/../..' . '/src/Data/ConnectionResolver.php',
@@ -200,6 +221,7 @@ class ComposerStaticIniteb2745926fd3fad8e88a340a3f270fca
         'WPGraphQL\\Type\\Comment\\Connection\\CommentConnectionResolver' => __DIR__ . '/../..' . '/src/Type/Comment/Connection/CommentConnectionResolver.php',
         'WPGraphQL\\Type\\Enum\\MediaItemStatusEnumType' => __DIR__ . '/../..' . '/src/Type/Enum/MediaItemStatusEnumType.php',
         'WPGraphQL\\Type\\Enum\\MimeTypeEnumType' => __DIR__ . '/../..' . '/src/Type/Enum/MimeTypeEnumType.php',
+        'WPGraphQL\\Type\\Enum\\PostObjectFieldFormatEnumType' => __DIR__ . '/../..' . '/src/Type/Enum/PostObjectFieldFormatEnumType.php',
         'WPGraphQL\\Type\\Enum\\PostStatusEnumType' => __DIR__ . '/../..' . '/src/Type/Enum/PostStatusEnumType.php',
         'WPGraphQL\\Type\\Enum\\PostTypeEnumType' => __DIR__ . '/../..' . '/src/Type/Enum/PostTypeEnumType.php',
         'WPGraphQL\\Type\\Enum\\RelationEnumType' => __DIR__ . '/../..' . '/src/Type/Enum/RelationEnumType.php',
@@ -260,9 +282,9 @@ class ComposerStaticIniteb2745926fd3fad8e88a340a3f270fca
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticIniteb2745926fd3fad8e88a340a3f270fca::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticIniteb2745926fd3fad8e88a340a3f270fca::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticIniteb2745926fd3fad8e88a340a3f270fca::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit56afbfac5834cbf869473c1f9d3722f6::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit56afbfac5834cbf869473c1f9d3722f6::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit56afbfac5834cbf869473c1f9d3722f6::$classMap;
 
         }, null, ClassLoader::class);
     }

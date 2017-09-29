@@ -151,8 +151,8 @@ class PostObjectType extends WPObjectType {
 							if ( ! empty( $ancestor_ids ) ) {
 								foreach ( $ancestor_ids as $ancestor_id ) {
 									$ancestor_obj = get_post( $ancestor_id );
-									if ( in_array( $ancestor_obj->post_type, $types, true ) ) {
-										$ancestors[] = $ancestor_obj;
+									if ( ! empty( $ancestor_obj->post_type ) && in_array( $ancestor_obj->post_type, $types, true ) ) {
+										$ancestors[] = DataSource::resolve_post_object( $ancestor_obj->ID, $ancestor_obj->post_type );
 									}
 								}
 							}
@@ -311,7 +311,7 @@ class PostObjectType extends WPObjectType {
 						},
 					],
 					'editLock'          => [
-						'type'        => new ObjectType( [
+						'type'        => new WPObjectType( [
 							'name'   => $single_name . 'editLock',
 							'fields' => [
 								'editTime' => [
@@ -499,7 +499,8 @@ class PostObjectType extends WPObjectType {
 						'description' => __( 'The featured image for the object', 'wp-graphql' ),
 						'resolve' => function( \WP_Post $post, $args, AppContext $context, ResolveInfo $info ) {
 							$thumbnail_id = get_post_thumbnail_id( $post->ID );
-							return ! empty( $thumbnail_id ) ? get_post( absint( $thumbnail_id ) ) : null;
+							$post = get_post( absint( $thumbnail_id ) );
+							return ! empty( $post->ID ) ? DataSource::resolve_post_object( $post->ID, $post->post_type ) : null;
 						},
 					];
 				}

@@ -4,6 +4,7 @@ namespace WPGraphQL\Type\Comment;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQLRelay\Relay;
 use WPGraphQL\AppContext;
+use WPGraphQL\Data\DataSource;
 use WPGraphQL\Type\Comment\Connection\CommentConnectionDefinition;
 use WPGraphQL\Type\WPObjectType;
 use WPGraphQL\Types;
@@ -74,7 +75,8 @@ class CommentType extends WPObjectType {
 						'type' => Types::post_object_union(),
 						'description' => __( 'The object the comment was added to', 'wp-graphql' ),
 						'resolve' => function( \WP_Comment $comment, $args, AppContext $context, ResolveInfo $info ) {
-							return ! empty( $comment->comment_post_ID ) ? get_post( $comment->comment_post_ID ) : null;
+							$post = ! empty( $comment->comment_post_ID ) ? get_post( $comment->comment_post_ID ) : null;
+							return ! empty( $post->ID ) ? DataSource::resolve_post_object( $post->ID, $post->post_type ) : null;
 						},
 					],
 					'author' => [
