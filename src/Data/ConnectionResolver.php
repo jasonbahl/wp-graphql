@@ -97,29 +97,28 @@ abstract class ConnectionResolver implements ConnectionResolverInterface {
 
 		$info        = self::get_query_info( $query );
 		$items       = $info['items'];
-
 		$array_slice = [];
 		if ( ! empty( $items ) && is_array( $items ) ) {
 			foreach ( $items as $item ) {
-
-				switch ( true ) {
-					case $item instanceof \WP_Comment:
-						$array_slice[ $item->comment_ID ] = $item;
-						break;
-					case $item instanceof \WP_Term:
-						$array_slice[ $item->term_id ] = $item;
-						break;
-					case $query instanceof \WP_Query:
-						$array_slice[ $item ] = DataSource::resolve_post_object( $item );
-						break;
-						// the \WP_User_Query doesn't have proper filters to allow for true cursor based pagination
-					case $item instanceof \WP_User:
-						$array_slice[] = $item;
-						break;
-					default:
-						$array_slice = $items;
+				if ( true === is_object( $item ) ) {
+					switch ( true ) {
+						case $item instanceof \WP_Comment:
+							$array_slice[ $item->comment_ID ] = $item;
+							break;
+						case $item instanceof \WP_Term:
+							$array_slice[ $item->term_id ] = $item;
+							break;
+						case $item instanceof \WP_Post:
+							$array_slice[ $item->ID ] = $item;
+							break;
+							// the \WP_User_Query doesn't have proper filters to allow for true cursor based pagination
+						case $item instanceof \WP_User:
+							$array_slice[] = $item;
+							break;
+						default:
+							$array_slice = $items;
+					}
 				}
-
 			}
 		}
 		return $array_slice;
