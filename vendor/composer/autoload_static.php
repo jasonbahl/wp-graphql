@@ -15,6 +15,11 @@ class ComposerStaticInitea09cc34976c7214c2e987f194c9a8c3
         array (
             'WPGraphQL\\' => 10,
         ),
+        'O' => 
+        array (
+            'Overblog\\PromiseAdapter\\' => 24,
+            'Overblog\\DataLoader\\' => 20,
+        ),
         'G' => 
         array (
             'GraphQL\\' => 8,
@@ -25,6 +30,14 @@ class ComposerStaticInitea09cc34976c7214c2e987f194c9a8c3
         'WPGraphQL\\' => 
         array (
             0 => __DIR__ . '/../..' . '/src',
+        ),
+        'Overblog\\PromiseAdapter\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/overblog/dataloader-php/lib/promise-adapter/src',
+        ),
+        'Overblog\\DataLoader\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/overblog/dataloader-php/src',
         ),
         'GraphQL\\' => 
         array (
@@ -201,6 +214,14 @@ class ComposerStaticInitea09cc34976c7214c2e987f194c9a8c3
         'GraphQL\\Validator\\Rules\\VariablesAreInputTypes' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/VariablesAreInputTypes.php',
         'GraphQL\\Validator\\Rules\\VariablesInAllowedPosition' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/VariablesInAllowedPosition.php',
         'GraphQL\\Validator\\ValidationContext' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/ValidationContext.php',
+        'Overblog\\DataLoader\\CacheMap' => __DIR__ . '/..' . '/overblog/dataloader-php/src/CacheMap.php',
+        'Overblog\\DataLoader\\DataLoader' => __DIR__ . '/..' . '/overblog/dataloader-php/src/DataLoader.php',
+        'Overblog\\DataLoader\\Option' => __DIR__ . '/..' . '/overblog/dataloader-php/src/Option.php',
+        'Overblog\\DataLoader\\Promise\\Adapter\\Webonyx\\GraphQL\\SyncPromiseAdapter' => __DIR__ . '/..' . '/overblog/dataloader-php/src/Promise/Adapter/Webonyx/GraphQL/SyncPromiseAdapter.php',
+        'Overblog\\PromiseAdapter\\Adapter\\GuzzleHttpPromiseAdapter' => __DIR__ . '/..' . '/overblog/dataloader-php/lib/promise-adapter/src/Adapter/GuzzleHttpPromiseAdapter.php',
+        'Overblog\\PromiseAdapter\\Adapter\\ReactPromiseAdapter' => __DIR__ . '/..' . '/overblog/dataloader-php/lib/promise-adapter/src/Adapter/ReactPromiseAdapter.php',
+        'Overblog\\PromiseAdapter\\Adapter\\WebonyxGraphQLSyncPromiseAdapter' => __DIR__ . '/..' . '/overblog/dataloader-php/lib/promise-adapter/src/Adapter/WebonyxGraphQLSyncPromiseAdapter.php',
+        'Overblog\\PromiseAdapter\\PromiseAdapterInterface' => __DIR__ . '/..' . '/overblog/dataloader-php/lib/promise-adapter/src/PromiseAdapterInterface.php',
         'WPGraphQL\\AppContext' => __DIR__ . '/../..' . '/src/AppContext.php',
         'WPGraphQL\\Data\\Config' => __DIR__ . '/../..' . '/src/Data/Config.php',
         'WPGraphQL\\Data\\ConnectionResolver' => __DIR__ . '/../..' . '/src/Data/ConnectionResolver.php',
