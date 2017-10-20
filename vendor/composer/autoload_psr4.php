@@ -7,7 +7,5 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'WPGraphQL\\' => array($baseDir . '/src'),
-    'Overblog\\PromiseAdapter\\' => array($vendorDir . '/overblog/dataloader-php/lib/promise-adapter/src'),
-    'Overblog\\DataLoader\\' => array($vendorDir . '/overblog/dataloader-php/src'),
     'GraphQL\\' => array($vendorDir . '/webonyx/graphql-php/src'),
 );

@@ -297,10 +297,6 @@ class PostObjectConnectionResolver extends ConnectionResolver {
 	 * This runs the query and returns the response
 	 *
 	 * @param $query_args
-	 * @param $source
-	 * @param $args
-	 * @param $context
-	 * @param $info
 	 *
 	 * @return \WP_Query
 	 */

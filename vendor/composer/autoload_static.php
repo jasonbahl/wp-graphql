@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitea09cc34976c7214c2e987f194c9a8c3
+class ComposerStaticInit5a544300b33052d356698363377e04ba
 {
     public static $files = array (
         'c594688b3441835d5575f3085da4a242' => __DIR__ . '/..' . '/webonyx/graphql-php/src/deprecated.php',
@@ -14,11 +14,6 @@ class ComposerStaticInitea09cc34976c7214c2e987f194c9a8c3
         'W' => 
         array (
             'WPGraphQL\\' => 10,
-        ),
-        'O' => 
-        array (
-            'Overblog\\PromiseAdapter\\' => 24,
-            'Overblog\\DataLoader\\' => 20,
         ),
         'G' => 
         array (
@@ -30,14 +25,6 @@ class ComposerStaticInitea09cc34976c7214c2e987f194c9a8c3
         'WPGraphQL\\' => 
         array (
             0 => __DIR__ . '/../..' . '/src',
-        ),
-        'Overblog\\PromiseAdapter\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/overblog/dataloader-php/lib/promise-adapter/src',
-        ),
-        'Overblog\\DataLoader\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/overblog/dataloader-php/src',
         ),
         'GraphQL\\' => 
         array (
@@ -214,18 +201,13 @@ class ComposerStaticInitea09cc34976c7214c2e987f194c9a8c3
         'GraphQL\\Validator\\Rules\\VariablesAreInputTypes' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/VariablesAreInputTypes.php',
         'GraphQL\\Validator\\Rules\\VariablesInAllowedPosition' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/Rules/VariablesInAllowedPosition.php',
         'GraphQL\\Validator\\ValidationContext' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Validator/ValidationContext.php',
-        'Overblog\\DataLoader\\CacheMap' => __DIR__ . '/..' . '/overblog/dataloader-php/src/CacheMap.php',
-        'Overblog\\DataLoader\\DataLoader' => __DIR__ . '/..' . '/overblog/dataloader-php/src/DataLoader.php',
-        'Overblog\\DataLoader\\Option' => __DIR__ . '/..' . '/overblog/dataloader-php/src/Option.php',
-        'Overblog\\DataLoader\\Promise\\Adapter\\Webonyx\\GraphQL\\SyncPromiseAdapter' => __DIR__ . '/..' . '/overblog/dataloader-php/src/Promise/Adapter/Webonyx/GraphQL/SyncPromiseAdapter.php',
-        'Overblog\\PromiseAdapter\\Adapter\\GuzzleHttpPromiseAdapter' => __DIR__ . '/..' . '/overblog/dataloader-php/lib/promise-adapter/src/Adapter/GuzzleHttpPromiseAdapter.php',
-        'Overblog\\PromiseAdapter\\Adapter\\ReactPromiseAdapter' => __DIR__ . '/..' . '/overblog/dataloader-php/lib/promise-adapter/src/Adapter/ReactPromiseAdapter.php',
-        'Overblog\\PromiseAdapter\\Adapter\\WebonyxGraphQLSyncPromiseAdapter' => __DIR__ . '/..' . '/overblog/dataloader-php/lib/promise-adapter/src/Adapter/WebonyxGraphQLSyncPromiseAdapter.php',
-        'Overblog\\PromiseAdapter\\PromiseAdapterInterface' => __DIR__ . '/..' . '/overblog/dataloader-php/lib/promise-adapter/src/PromiseAdapterInterface.php',
         'WPGraphQL\\AppContext' => __DIR__ . '/../..' . '/src/AppContext.php',
         'WPGraphQL\\Data\\Config' => __DIR__ . '/../..' . '/src/Data/Config.php',
         'WPGraphQL\\Data\\ConnectionResolver' => __DIR__ . '/../..' . '/src/Data/ConnectionResolver.php',
         'WPGraphQL\\Data\\ConnectionResolverInterface' => __DIR__ . '/../..' . '/src/Data/ConnectionResolverInterface.php',
+        'WPGraphQL\\Data\\CursorPagination\\WP_Comment_Query' => __DIR__ . '/../..' . '/src/Data/CursorPagination/WP_Comment_Query.php',
+        'WPGraphQL\\Data\\CursorPagination\\WP_Query' => __DIR__ . '/../..' . '/src/Data/CursorPagination/WP_Query.php',
+        'WPGraphQL\\Data\\CursorPagination\\WP_Term_Query' => __DIR__ . '/../..' . '/src/Data/CursorPagination/WP_Term_Query.php',
         'WPGraphQL\\Data\\DataSource' => __DIR__ . '/../..' . '/src/Data/DataSource.php',
         'WPGraphQL\\Router' => __DIR__ . '/../..' . '/src/Router.php',
         'WPGraphQL\\Type\\Avatar\\AvatarType' => __DIR__ . '/../..' . '/src/Type/Avatar/AvatarType.php',
@@ -297,9 +279,9 @@ class ComposerStaticInitea09cc34976c7214c2e987f194c9a8c3
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitea09cc34976c7214c2e987f194c9a8c3::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitea09cc34976c7214c2e987f194c9a8c3::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInitea09cc34976c7214c2e987f194c9a8c3::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit5a544300b33052d356698363377e04ba::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit5a544300b33052d356698363377e04ba::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit5a544300b33052d356698363377e04ba::$classMap;
 
         }, null, ClassLoader::class);
     }
