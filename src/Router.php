@@ -401,7 +401,7 @@ class Router {
 			 * @since 0.0.4
 			 */
 			self::$http_status_code = 500;
-			$response['errors'] = [ FormattedError::createFromException( $error ) ];
+			$response['errors']     = [ FormattedError::createFromException( $error ) ];
 		} // End try().
 
 		/**

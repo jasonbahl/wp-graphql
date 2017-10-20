@@ -13,6 +13,11 @@ use WPGraphQL\AppContext;
  */
 interface ConnectionResolverInterface {
 
+	/**
+	 * @param $query_args
+	 *
+	 * @return mixed
+	 */
 	public static function get_query( $query_args );
 
 	/**

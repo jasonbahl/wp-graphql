@@ -8,7 +8,6 @@ use WPGraphQL\AppContext;
 use WPGraphQL\Data\DataSource;
 use WPGraphQL\Type\PostObject\Connection\PostObjectConnectionDefinition;
 use WPGraphQL\Type\TermObject\Connection\TermObjectConnectionDefinition;
-use WPGraphQL\Type\TermObject\Connection\TermObjectConnectionResolver;
 use WPGraphQL\Type\WPObjectType;
 use WPGraphQL\Types;
 

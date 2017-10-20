@@ -124,6 +124,7 @@ class PostObjectType extends WPObjectType {
 					'id'                => [
 						'type'    => Types::non_null( Types::id() ),
 						'description' => __( 'The globally unique ID for the object', 'wp-graphql' ),
+						'shouldPrimeCache' => false,
 						'resolve' => function( \WP_Post $post, $args, AppContext $context, ResolveInfo $info ) {
 							return ( ! empty( $post->post_type ) && ! empty( $post->ID ) ) ? Relay::toGlobalId( $post->post_type, $post->ID ) : null;
 						},
@@ -131,6 +132,7 @@ class PostObjectType extends WPObjectType {
 					$single_name . 'Id' => [
 						'type'        => Types::non_null( Types::int() ),
 						'description' => __( 'The id field matches the WP_Post->ID field.', 'wp-graphql' ),
+						'shouldPrimeCache' => false,
 						'resolve'     => function( \WP_Post $post, $args, AppContext $context, ResolveInfo $info ) {
 							return absint( $post->ID );
 						},
@@ -138,6 +140,7 @@ class PostObjectType extends WPObjectType {
 					'ancestors' => [
 						'type' => Types::list_of( Types::post_object_union() ),
 						'description' => esc_html__( 'Ancestors of the object', 'wp-graphql' ),
+						'shouldPrimeCache' => false,
 						'args' => [
 							'types' => [
 								'type' => Types::list_of( Types::post_type_enum() ),
@@ -162,12 +165,15 @@ class PostObjectType extends WPObjectType {
 					'author'            => [
 						'type'        => Types::user(),
 						'description' => __( "The author field will return a queryable User type matching the post's author.", 'wp-graphql' ),
+						'shouldPrimeCache' => false,
 						'resolve'     => function( \WP_Post $post, $args, AppContext $context, ResolveInfo $info ) {
 							return ! empty( $post->post_author ) ? new \WP_User( $post->post_author ) : null;
 						},
 					],
 					'date'              => [
 						'type'        => Types::string(),
+						'shouldPrimeCache' => false,
+						'shouldPrimeCache' => false,
 						'description' => __( 'Post publishing date.', 'wp-graphql' ),
 						'resolve'     => function( \WP_Post $post, $args, AppContext $context, ResolveInfo $info ) {
 							return ! empty( $post->post_date ) ? $post->post_date : null;
@@ -175,6 +181,7 @@ class PostObjectType extends WPObjectType {
 					],
 					'dateGmt'           => [
 						'type'        => Types::string(),
+						'shouldPrimeCache' => false,
 						'description' => __( 'The publishing date set in GMT.', 'wp-graphql' ),
 						'resolve'     => function( \WP_Post $post, $args, AppContext $context, ResolveInfo $info ) {
 							return ! empty( $post->post_date_gmt ) ? $post->post_date_gmt : null;
@@ -183,6 +190,7 @@ class PostObjectType extends WPObjectType {
 					'content'           => [
 						'type'        => Types::string(),
 						'description' => __( 'The content of the post.', 'wp-graphql' ),
+						'shouldPrimeCache' => false,
 						'args' => [
 							'format' => self::post_object_format_arg(),
 						],
@@ -202,6 +210,7 @@ class PostObjectType extends WPObjectType {
 					'title'             => [
 						'type'        => Types::string(),
 						'description' => __( 'The title of the post. This is currently just the raw title. An amendment to support rendered title needs to be made.', 'wp-graphql' ),
+						'shouldPrimeCache' => false,
 						'args' => [
 							'format' => self::post_object_format_arg(),
 						],
@@ -221,6 +230,7 @@ class PostObjectType extends WPObjectType {
 					'excerpt'           => [
 						'type'        => Types::string(),
 						'description' => __( 'The excerpt of the post. This is currently just the raw excerpt. An amendment to support rendered excerpts needs to be made.', 'wp-graphql' ),
+						'shouldPrimeCache' => false,
 						'args' => [
 							'format' => self::post_object_format_arg(),
 						],
@@ -241,6 +251,7 @@ class PostObjectType extends WPObjectType {
 					'status'            => [
 						'type'        => Types::string(),
 						'description' => __( 'The current status of the object', 'wp-graphql' ),
+						'shouldPrimeCache' => false,
 						'resolve'     => function( \WP_Post $post, $args, AppContext $context, ResolveInfo $info ) {
 							return ! empty( $post->post_status ) ? $post->post_status : null;
 						},
@@ -248,6 +259,7 @@ class PostObjectType extends WPObjectType {
 					'commentStatus'     => array(
 						'type'        => Types::string(),
 						'description' => __( 'Whether the comments are open or closed for this particular post.', 'wp-graphql' ),
+						'shouldPrimeCache' => false,
 						'resolve'     => function( \WP_Post $post, $args, AppContext $context, ResolveInfo $info ) {
 							return ! empty( $post->comment_status ) ? $post->comment_status : null;
 						},
@@ -255,6 +267,7 @@ class PostObjectType extends WPObjectType {
 					'pingStatus'        => [
 						'type'        => Types::string(),
 						'description' => __( 'Whether the pings are open or closed for this particular post.', 'wp-graphql' ),
+						'shouldPrimeCache' => false,
 						'resolve'     => function( \WP_Post $post, $args, AppContext $context, ResolveInfo $info ) {
 							return ! empty( $post->ping_status ) ? $post->ping_status : null;
 						},
@@ -262,6 +275,7 @@ class PostObjectType extends WPObjectType {
 					'slug'              => [
 						'type'        => Types::string(),
 						'description' => __( 'The uri slug for the post. This is equivalent to the WP_Post->post_name field and the post_name column in the database for the `post_objects` table.', 'wp-graphql' ),
+						'shouldPrimeCache' => false,
 						'resolve'     => function( \WP_Post $post, $args, AppContext $context, ResolveInfo $info ) {
 							return ! empty( $post->post_name ) ? $post->post_name : null;
 						},
@@ -269,6 +283,7 @@ class PostObjectType extends WPObjectType {
 					'toPing'            => [
 						'type'        => Types::list_of( Types::string() ),
 						'description' => __( 'URLs queued to be pinged.', 'wp-graphql' ),
+						'shouldPrimeCache' => false,
 						'resolve'     => function( \WP_Post $post, $args, AppContext $context, ResolveInfo $info ) {
 							return ! empty( $post->to_ping ) ? implode( ',', $post->to_ping ) : null;
 						},
@@ -276,6 +291,7 @@ class PostObjectType extends WPObjectType {
 					'pinged'            => [
 						'type'        => Types::list_of( Types::string() ),
 						'description' => __( 'URLs that have been pinged.', 'wp-graphql' ),
+						'shouldPrimeCache' => false,
 						'resolve'     => function( \WP_Post $post, $args, AppContext $context, ResolveInfo $info ) {
 							return ! empty( $post->pinged ) ? implode( ',', $post->pinged ) : null;
 						},
@@ -283,6 +299,7 @@ class PostObjectType extends WPObjectType {
 					'modified'          => [
 						'type'        => Types::string(),
 						'description' => __( 'The local modified time for a post. If a post was recently updated the modified field will change to match the corresponding time.', 'wp-graphql' ),
+						'shouldPrimeCache' => false,
 						'resolve'     => function( \WP_Post $post, $args, AppContext $context, ResolveInfo $info ) {
 							return ! empty( $post->post_modified ) ? $post->post_modified : null;
 						},
@@ -290,6 +307,7 @@ class PostObjectType extends WPObjectType {
 					'modifiedGmt'       => [
 						'type'        => Types::string(),
 						'description' => __( 'The GMT modified time for a post. If a post was recently updated the modified field will change to match the corresponding time in GMT.', 'wp-graphql' ),
+						'shouldPrimeCache' => false,
 						'resolve'     => function( \WP_Post $post, $args, AppContext $context, ResolveInfo $info ) {
 							return ! empty( $post->post_modified_gmt ) ? $post->post_modified_gmt : null;
 						},
@@ -297,6 +315,7 @@ class PostObjectType extends WPObjectType {
 					'parent'            => [
 						'type'        => Types::post_object_union(),
 						'description' => __( 'The parent of the object. The parent object can be of various types', 'wp-graphql' ),
+						'shouldPrimeCache' => false,
 						'resolve'     => function( \WP_Post $post, array $args, AppContext $context, ResolveInfo $info ) {
 							return ! empty( $post->post_parent ) ? get_post( $post->post_parent ) : null;
 						},
@@ -304,6 +323,7 @@ class PostObjectType extends WPObjectType {
 					'editLast'          => [
 						'type'        => Types::user(),
 						'description' => __( 'The user that most recently edited the object', 'wp-graphql' ),
+						'shouldPrimeCache' => true,
 						'resolve'     => function( \WP_Post $post, array $args, AppContext $context, ResolveInfo $info ) {
 							$edit_last = get_post_meta( $post->ID, '_edit_last', true );
 
@@ -335,6 +355,7 @@ class PostObjectType extends WPObjectType {
 							],
 						] ),
 						'description' => __( 'If a user has edited the object within the past 15 seconds, this will return the user and the time they last edited. Null if the edit lock doesn\'t exist or is greater than 15 seconds', 'wp-graphql' ),
+						'shouldPrimeCache' => true,
 						'resolve'     => function( \WP_Post $post, array $args, AppContext $context, ResolveInfo $info ) {
 							$edit_lock       = get_post_meta( $post->ID, '_edit_lock', true );
 							$edit_lock_parts = explode( ':', $edit_lock );
@@ -345,6 +366,7 @@ class PostObjectType extends WPObjectType {
 					'enclosure'         => [
 						'type'        => Types::string(),
 						'description' => __( 'The RSS enclosure for the object', 'wp-graphql' ),
+						'shouldPrimeCache' => false,
 						'resolve'     => function( \WP_Post $post, array $args, AppContext $context, ResolveInfo $info ) {
 							$enclosure = get_post_meta( $post->ID, 'enclosure', true );
 
@@ -354,6 +376,7 @@ class PostObjectType extends WPObjectType {
 					'guid'              => [
 						'type'        => Types::string(),
 						'description' => __( 'The global unique identifier for this post. This currently matches the value stored in WP_Post->guid and the guid column in the `post_objects` database table.', 'wp-graphql' ),
+						'shouldPrimeCache' => false,
 						'resolve'     => function( \WP_Post $post, $args, AppContext $context, ResolveInfo $info ) {
 							return ! empty( $post->guid ) ? $post->guid : null;
 						},
@@ -361,6 +384,7 @@ class PostObjectType extends WPObjectType {
 					'menuOrder'         => [
 						'type'        => Types::int(),
 						'description' => __( 'A field used for ordering posts. This is typically used with nav menu items or for special ordering of hierarchical content types.', 'wp-graphql' ),
+						'shouldPrimeCache' => false,
 						'resolve'     => function( \WP_Post $post, $args, AppContext $context, ResolveInfo $info ) {
 							return ! empty( $post->menu_order ) ? absint( $post->menu_order ) : null;
 						},
@@ -368,6 +392,7 @@ class PostObjectType extends WPObjectType {
 					'desiredSlug' => [
 						'type' => Types::string(),
 						'description' => __( 'The desired slug of the post', 'wp-graphql' ),
+						'shouldPrimeCache' => true,
 						'resolve'     => function( \WP_Post $post, $args, AppContext $context, ResolveInfo $info ) {
 							$desired_slug = get_post_meta( $post->ID, '_wp_desired_post_slug', true );
 
@@ -377,6 +402,7 @@ class PostObjectType extends WPObjectType {
 					'link'              => [
 						'type'        => Types::string(),
 						'description' => __( 'The permalink of the post', 'wp-graphql' ),
+						'shouldPrimeCache' => true,
 						'resolve'     => function( \WP_Post $post, $args, AppContext $context, ResolveInfo $info ) {
 							$link = get_permalink( $post->ID );
 
@@ -386,6 +412,7 @@ class PostObjectType extends WPObjectType {
 					'uri' => [
 						'type' => Types::string(),
 						'description' => __( 'URI path for the resource', 'wp-graphql' ),
+						'shouldPrimeCache' => true,
 						'resolve' => function( \WP_Post $post, $args, AppContext $context, ResolveInfo $info ) {
 							$uri = get_page_uri( $post->ID );
 							return ! empty( $uri ) ? $uri : null;
@@ -402,6 +429,7 @@ class PostObjectType extends WPObjectType {
 						],
 						// Translators: placeholder is the name of the post_type
 						'description' => sprintf( __( 'Terms connected to the %1$s', 'wp-graphql' ), $single_name ),
+						'shouldPrimeCache' => true,
 						'resolve' => function( \WP_Post $post, $args, AppContext $context, ResolveInfo $info ) use ( $allowed_taxonomies ) {
 
 							$terms = [];
@@ -432,6 +460,7 @@ class PostObjectType extends WPObjectType {
 						],
 						// Translators: placeholder is the name of the post_type
 						'description' => sprintf( __( 'Terms connected to the %1$s', 'wp-graphql' ), $single_name ),
+						'shouldPrimeCache' => true,
 						'resolve' => function( \WP_Post $post, $args, AppContext $context, ResolveInfo $info ) use ( $allowed_taxonomies ) {
 
 							$terms = [];
@@ -464,6 +493,7 @@ class PostObjectType extends WPObjectType {
 					$fields['commentCount'] = [
 						'type'        => Types::int(),
 						'description' => __( 'The number of comments. Even though WPGraphQL denotes this field as an integer, in WordPress this field should be saved as a numeric string for compatability.', 'wp-graphql' ),
+						'shouldPrimeCache' => false,
 						'resolve'     => function( \WP_Post $post, $args, AppContext $context, ResolveInfo $info ) {
 							return ! empty( $post->comment_count ) ? absint( $post->comment_count ) : null;
 						},
@@ -497,6 +527,7 @@ class PostObjectType extends WPObjectType {
 					$fields['featuredImage'] = [
 						'type' => Types::post_object( 'attachment' ),
 						'description' => __( 'The featured image for the object', 'wp-graphql' ),
+						'shouldPrimeCache' => false,
 						'resolve' => function( \WP_Post $post, $args, AppContext $context, ResolveInfo $info ) {
 							$thumbnail_id = get_post_thumbnail_id( $post->ID );
 							return ! empty( $thumbnail_id ) ? get_post( absint( $thumbnail_id ) ) : null;

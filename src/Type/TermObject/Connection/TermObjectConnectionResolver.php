@@ -161,6 +161,7 @@ class TermObjectConnectionResolver extends ConnectionResolver {
 	 */
 	public static function get_query( $query_args ) {
 		$query = new \WP_Term_Query( $query_args );
+
 		return $query;
 	}
 
@@ -219,7 +220,7 @@ class TermObjectConnectionResolver extends ConnectionResolver {
 				'startCursor'     => ! empty( $first_edge['cursor'] ) ? $first_edge['cursor'] : null,
 				'endCursor'       => ! empty( $last_edge['cursor'] ) ? $last_edge['cursor'] : null,
 			],
-			'nodes' => $items,
+			'nodes'    => $items,
 		];
 
 		return $connection;

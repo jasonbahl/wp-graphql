@@ -11,6 +11,11 @@
  * Tests user object queries.
  */
 class WP_GraphQL_Test_User_Object_Queries extends WP_UnitTestCase {
+
+	public $admin;
+	public $current_time;
+	public $current_date;
+
 	/**
 	 * This function is run before each method
 	 *
@@ -21,6 +26,10 @@ class WP_GraphQL_Test_User_Object_Queries extends WP_UnitTestCase {
 
 		$this->current_time = strtotime( '- 1 day' );
 		$this->current_date = date( 'Y-m-d H:i:s', $this->current_time );
+
+		$this->admin = $this->factory->user->create( [
+			'role' => 'administrator',
+		] );
 	}
 
 	/**
@@ -243,198 +252,6 @@ class WP_GraphQL_Test_User_Object_Queries extends WP_UnitTestCase {
 							[
 								'node' => [
 									'commentId' => $comment_id,
-								],
-							],
-						],
-					],
-				],
-			],
-		];
-
-		$this->assertEquals( $expected, $actual );
-	}
-
-	/**
-	 * testUserQueryWithPosts
-	 *
-	 * This tests a single user with posts connection.
-	 *
-	 * @since 0.0.5
-	 */
-	public function testUserQueryWithPosts() {
-
-		/**
-		 * Create a user
-		 */
-		$user_id = $this->createUserObject();
-
-		$post_id = $this->factory->post->create( [ 'post_author' => $user_id ] );
-
-		/**
-		 * Create the global ID based on the user_type and the created $id
-		 */
-		$global_id = \GraphQLRelay\Relay::toGlobalId( 'user', $user_id );
-
-		/**
-		 * Create the query string to pass to the $query
-		 */
-		$query = "
-		query {
-			user(id: \"{$global_id}\") {
-				posts {
-					edges {
-						node {
-							postId
-						}
-					}
-				}
-			}
-		}";
-
-		/**
-		 * Run the GraphQL query
-		 */
-		$actual = do_graphql_request( $query );
-
-		/**
-		 * Establish the expectation for the output of the query
-		 */
-		$expected = [
-			'data' => [
-				'user' => [
-					'posts' => [
-						'edges' => [
-							[
-								'node' => [
-									'postId' => $post_id,
-								],
-							],
-						],
-					],
-				],
-			],
-		];
-
-		$this->assertEquals( $expected, $actual );
-	}
-
-	/**
-	 * testUserQueryWithPages
-	 *
-	 * This tests a single user with pages connection.
-	 *
-	 * @since 0.0.5
-	 */
-	public function testUserQueryWithPages() {
-
-		/**
-		 * Create a user
-		 */
-		$user_id = $this->createUserObject();
-
-		$post_id = $this->factory->post->create( [ 'post_author' => $user_id, 'post_type' => 'page' ] );
-
-		/**
-		 * Create the global ID based on the user_type and the created $id
-		 */
-		$global_id = \GraphQLRelay\Relay::toGlobalId( 'user', $user_id );
-
-		/**
-		 * Create the query string to pass to the $query
-		 */
-		$query = "
-		query {
-			user(id: \"{$global_id}\") {
-				pages {
-					edges {
-						node {
-							pageId
-						}
-					}
-				}
-			}
-		}";
-
-		/**
-		 * Run the GraphQL query
-		 */
-		$actual = do_graphql_request( $query );
-
-		/**
-		 * Establish the expectation for the output of the query
-		 */
-		$expected = [
-			'data' => [
-				'user' => [
-					'pages' => [
-						'edges' => [
-							[
-								'node' => [
-									'pageId' => $post_id,
-								],
-							],
-						],
-					],
-				],
-			],
-		];
-
-		$this->assertEquals( $expected, $actual );
-	}
-
-	/**
-	 * testUserQueryWithMedia
-	 *
-	 * This tests a single user with mediaItems connection.
-	 *
-	 * @since 0.0.5
-	 */
-	public function testUserQueryWithMedia() {
-
-		/**
-		 * Create a user
-		 */
-		$user_id = $this->createUserObject();
-
-		$post_id = $this->factory->post->create( [ 'post_author' => $user_id, 'post_type' => 'attachment' ] );
-
-		/**
-		 * Create the global ID based on the user_type and the created $id
-		 */
-		$global_id = \GraphQLRelay\Relay::toGlobalId( 'user', $user_id );
-
-		/**
-		 * Create the query string to pass to the $query
-		 */
-		$query = "
-		query {
-			user(id: \"{$global_id}\") {
-				mediaItems {
-					edges {
-						node {
-							mediaItemId
-						}
-					}
-				}
-			}
-		}";
-
-		/**
-		 * Run the GraphQL query
-		 */
-		$actual = do_graphql_request( $query );
-
-		/**
-		 * Establish the expectation for the output of the query
-		 */
-		$expected = [
-			'data' => [
-				'user' => [
-					'mediaItems' => [
-						'edges' => [
-							[
-								'node' => [
-									'mediaItemId' => $post_id,
 								],
 							],
 						],

@@ -1,4 +1,5 @@
 <?php
+
 namespace WPGraphQL\Data;
 
 use GraphQL\Error\UserError;
@@ -30,16 +31,33 @@ abstract class ConnectionResolver implements ConnectionResolverInterface {
 	 */
 	public static function resolve( $source, $args, AppContext $context, ResolveInfo $info ) {
 
-		$query_args  = static::get_query_args( $source, $args, $context, $info );
-		$query       = static::get_query( $query_args );
-		$array_slice = self::get_array_slice( $query, $args );
-		$connection  = static::get_connection( $query, $array_slice, $source, $args, $context, $info );
+		/**
+		 * Get the Query Args
+		 */
+		$query_args = static::get_query_args( $source, $args, $context, $info );
+		$cache_key  = ! empty( $query_args ) ? wp_json_encode( $query_args ) : null;
+
+		/**
+		 * Check to see if a connection query has already been executed or not
+		 */
+		$cached_connection = wp_cache_get( $cache_key, 'graphql_connection' );
+
+		/**
+		 * If the query has not been executed, execute it now, otherwise return the cached query
+		 */
+		if ( ! $cached_connection ) {
+			$query       = static::get_query( $query_args );
+			$array_slice = self::get_array_slice( $query, $args );
+			$connection  = static::get_connection( $query, $array_slice, $source, $args, $context, $info );
+			wp_cache_add( $cache_key, $connection, 'graphql_connection' );
+		} else {
+			$connection = $cached_connection;
+		}
+
 		/**
 		 * Filter the connection, and provide heaps of info to make it easy to filter very specific cases
 		 *
 		 * @param array $connection  The connection to return
-		 * @param array $array_slice The Array to create the connection from
-		 * @param mixed $query       The query that was run to retrieve the items
 		 * @param array $query_args  The args that were used by the query
 		 * @param mixed $source      The source being passed down the GraphQL tree
 		 * @param array $args        The args that were input for the specific GraphQL query
@@ -50,8 +68,6 @@ abstract class ConnectionResolver implements ConnectionResolverInterface {
 		$connection = apply_filters(
 			'graphql_connection_resolver_resolve',
 			$connection,
-			$array_slice,
-			$query,
 			$query_args,
 			$source,
 			$args,
@@ -66,19 +82,19 @@ abstract class ConnectionResolver implements ConnectionResolverInterface {
 	/**
 	 * Take an array return a connection
 	 *
-	 * @param mixed $query The query being performed
-	 * @param array $array The array of connection items
-	 * @param mixed $source The source being passed down the resolve tree
-	 * @param array $args The args for the field being resolved
-	 * @param AppContext $context The context being passed down the Resolve tree
-	 * @param ResolveInfo $info The ResolveInfo for the field being resolved
+	 * @param mixed       $query   The query being performed
+	 * @param array       $array   The array of connection items
+	 * @param mixed       $source  The source being passed down the resolve tree
+	 * @param array       $args    The args for the field being resolved
+	 * @param AppContext  $context The context being passed down the Resolve tree
+	 * @param ResolveInfo $info    The ResolveInfo for the field being resolved
 	 *
 	 * @return array
 	 */
 	public static function get_connection( $query, array $array, $source, array $args, AppContext $context, ResolveInfo $info ) {
 
-		$meta       = self::get_array_meta( $query, $args );
-		$connection = ArrayConnection::connectionFromArraySlice( $array, $args, $meta );
+		$meta                = self::get_array_meta( $query, $args );
+		$connection          = ArrayConnection::connectionFromArraySlice( $array, $args, $meta );
 		$connection['nodes'] = $array;
 
 		return $connection;
@@ -111,7 +127,7 @@ abstract class ConnectionResolver implements ConnectionResolverInterface {
 						case $item instanceof \WP_Post:
 							$array_slice[ $item->ID ] = $item;
 							break;
-							// the \WP_User_Query doesn't have proper filters to allow for true cursor based pagination
+						// the \WP_User_Query doesn't have proper filters to allow for true cursor based pagination
 						case $item instanceof \WP_User:
 							$array_slice[] = $item;
 							break;
@@ -121,6 +137,7 @@ abstract class ConnectionResolver implements ConnectionResolverInterface {
 				}
 			}
 		}
+
 		return $array_slice;
 	}
 
@@ -281,12 +298,12 @@ abstract class ConnectionResolver implements ConnectionResolverInterface {
 		if ( true === is_object( $query ) ) {
 			switch ( true ) {
 				case $query instanceof \WP_Query:
-					$found_posts = $query->posts;
+					$found_posts               = $query->posts;
 					$query_info['total_items'] = ! empty( $found_posts ) ? count( $found_posts ) : null;
 					$query_info['items']       = $found_posts;
 					break;
 				case $query instanceof \WP_Comment_Query:
-					$found_comments = $query->get_comments();
+					$found_comments            = $query->get_comments();
 					$query_info['total_items'] = ! empty( $found_comments ) ? count( $found_comments ) : null;
 					$query_info['items']       = ! empty( $found_comments ) ? $found_comments : [];
 					break;
