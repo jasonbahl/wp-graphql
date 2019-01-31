@@ -38,9 +38,8 @@ if ( file_exists( __DIR__ . '/c3.php' ) ) {
  * This plugin brings the power of GraphQL (http://graphql.org/) to WordPress.
  *
  * This plugin is based on the hard work of Jason Bahl, Ryan Kanner, Hughie Devore and Peter Pak of
- * Digital First Media
- * (https://github.com/dfmedia), and Edwin Cromley of BE-Webdesign
- * (https://github.com/BE-Webdesign).
+ * Digital First Media (https://github.com/dfmedia), and
+ * Edwin Cromley of BE-Webdesign (https://github.com/BE-Webdesign).
  *
  * The plugin is built on top of the graphql-php library by Webonyx
  * (https://github.com/webonyx/graphql-php) and makes use of the graphql-relay-php library by Ivome

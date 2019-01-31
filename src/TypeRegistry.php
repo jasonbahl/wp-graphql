@@ -79,15 +79,16 @@ class TypeRegistry {
 		register_graphql_type( 'String', Types::string() );
 
 		/**
-		 * Register core WPGRaphQL Types
+		 * Register core WPGraphQL Types
 		 */
 		require_once( WPGRAPHQL_PLUGIN_DIR . 'src/Type/Object/Avatar.php' );
 		require_once( WPGRAPHQL_PLUGIN_DIR . 'src/Type/Enum/AvatarRatingEnum.php' );
 		require_once( WPGRAPHQL_PLUGIN_DIR . 'src/Type/Object/Comment.php' );
-		require_once( WPGRAPHQL_PLUGIN_DIR . 'src/Type/Enum/CommentsConnectionOrderbyEnum.php' );
+		require_once( WPGRAPHQL_PLUGIN_DIR . 'src/Type/Enum/CommentsConnectionOrderByEnum.php' );
 		require_once( WPGRAPHQL_PLUGIN_DIR . 'src/Type/Object/CommentAuthor.php' );
 		require_once( WPGRAPHQL_PLUGIN_DIR . 'src/Type/Input/DateInput.php' );
 		require_once( WPGRAPHQL_PLUGIN_DIR . 'src/Type/Input/DateQueryInput.php' );
+		require_once( WPGRAPHQL_PLUGIN_DIR . 'src/Type/Enum/DefaultCommentsPageEnum.php' );
 		require_once( WPGRAPHQL_PLUGIN_DIR . 'src/Type/Object/EditLock.php' );
 		require_once( WPGRAPHQL_PLUGIN_DIR . 'src/Type/Enum/MediaItemStatusEnum.php' );
 		require_once( WPGRAPHQL_PLUGIN_DIR . 'src/Type/Object/MediaDetails.php' );
@@ -112,6 +113,7 @@ class TypeRegistry {
 		require_once( WPGRAPHQL_PLUGIN_DIR . 'src/Type/Object/RootQuery.php' );
 		require_once( WPGRAPHQL_PLUGIN_DIR . 'src/Type/Enum/PostTypeEnum.php' );
 		require_once( WPGRAPHQL_PLUGIN_DIR . 'src/Type/Enum/RelationEnum.php' );
+		require_once( WPGRAPHQL_PLUGIN_DIR . 'src/Type/Enum/RSSExcerptTypeEnum.php' );
 		require_once( WPGRAPHQL_PLUGIN_DIR . 'src/Type/Object/Settings.php' );
 		require_once( WPGRAPHQL_PLUGIN_DIR . 'src/Type/Enum/TermObjectsConnectionOrderbyEnum.php' );
 		require_once( WPGRAPHQL_PLUGIN_DIR . 'src/Type/Object/Theme.php' );
@@ -121,7 +123,7 @@ class TypeRegistry {
 		require_once( WPGRAPHQL_PLUGIN_DIR . 'src/Type/Enum/UsersConnectionSearchColumnEnum.php' );
 		require_once( WPGRAPHQL_PLUGIN_DIR . 'src/Type/Object/UserRole.php' );
 		require_once( WPGRAPHQL_PLUGIN_DIR . 'src/Type/Enum/UserRoleEnum.php' );
-
+		require_once( WPGRAPHQL_PLUGIN_DIR . 'src/Type/Enum/WeekdayEnum.php' );
 		require_once( WPGRAPHQL_PLUGIN_DIR . 'src/Type/Object/SettingGroup.php' );
 		require_once( WPGRAPHQL_PLUGIN_DIR . 'src/Type/Object/PostObject.php' );
 		require_once( WPGRAPHQL_PLUGIN_DIR . 'src/Type/Object/TermObject.php' );

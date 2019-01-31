@@ -30,7 +30,7 @@ register_graphql_type( 'Avatar', [
 			},
 		],
 		'rating'       => [
-			'type'        => 'String',
+			'type'        => 'AvatarRatingEnum',
 			'description' => __( "What rating to display avatars up to. Accepts 'G', 'PG', 'R', 'X', and are judged in that order.", 'wp-graphql' ),
 		],
 		'scheme'       => [
