@@ -322,4 +322,88 @@ class SettingQueriesTest extends \Codeception\TestCase\WPTestCase {
 
 	}
 
+	public function testGeneralSettingsQuery() {
+
+		$query = '
+		{
+		  generalSettings {
+		    title
+		    siteTitle
+		    description
+		    tagline
+		    url
+		    siteAddress
+		    adminEmailAddress
+		    canAnyoneRegister
+		    defaultNewUserRole
+		    siteLanguage
+		    siteTimezone
+		    dateFormat
+		    timeFormat
+		    weekStartsOn
+		  }
+		  writingSettings {
+		    defaultPostCategory {
+		      id
+		      name
+		    }
+		    defaultPostFormat {
+		      id
+		      name
+		    }
+		    mailServer {
+		      url
+		      port
+		      username
+		      password
+		    }
+		    defaultEmailCategory {
+		      id
+		      name
+		    }
+		    # List of services
+		    servicesToUpdate
+		  }
+		  readingSettings {
+		    # LatestPosts | StaticPage
+		    displayOnHomepage
+		    pageOnFront {
+	          id
+	          title
+	        }
+		    pageForPosts {
+	          id
+	          title
+		    }
+		    defaultPostsPerPage
+		    defaultPostsPerRssFeed
+		    # Full Text | Summary
+		    rssExcerptDisplay		    
+		  }
+		  discussionSettings {
+		    defaultPingbackFlag
+		    defaultPingStatus
+		    defaultCommentStatus
+		    
+		  }
+		}';
+
+	}
+
 }
+
+register_setting( 'writing', 'mail_server', [
+	'graphql' => [
+		'fields' => [
+			'url' => [
+				'type' => 'String',
+				'description' => __( '...', 'wp-graphql' ),
+				'resolve' => function() {
+					return get_option( 'mailserver_url' );
+				}
+			],
+		]
+	]
+] );
+
+register_setting( 'discussion', 'default_pingback_flag' );
