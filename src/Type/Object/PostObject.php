@@ -209,6 +209,13 @@ class PostObject {
 	public static function get_post_object_fields( $post_type_object ) {
 		$single_name = $post_type_object->graphql_single_name;
 		$fields      = [
+			'id'                => [
+				'description' => sprintf(
+					/* translators: %s: custom post-type name */
+					__( 'The globally unique identifier of the %s object.', 'wp-graphql' ),
+					$post_type_object->name
+				),
+			],
 			$single_name . 'Id' => [
 				'type'        => [
 					'non_null' => 'Int',
@@ -569,6 +576,16 @@ class PostObject {
 				'description' => __( 'Whether the object is restricted from the current viewer', 'wp-graphql' ),
 			],
 		];
+
+		if ( 'page' === $post_type_object->name ) {
+			$fields['isFrontPage'] = [
+				'type'        => [ 'non_null' => 'Bool' ],
+				'description' => __( 'Whether this page is set to the static front page.', 'wp-graphql' ),
+				'resolve' => function( Post $page ) {
+					return isset( $page->isFrontPage ) ? (bool) $page->isFrontPage : false;
+				}
+			];
+		}
 
 		if ( 'attachment' === $post_type_object->name ) {
 			$fields['excerpt']['isDeprecated']      = true;

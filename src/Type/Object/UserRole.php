@@ -8,22 +8,24 @@ class UserRole {
 			'UserRole',
 			[
 				'description' => __( 'A user role object', 'wp-graphql' ),
+				'interfaces'  => [ 'Node' ],
 				'fields'      => [
 					'id'           => [
-						'type'        => [
-							'non_null' => 'ID',
-						],
-						'description' => __( 'The globally unique identifier for the role', 'wp-graphql' ),
+						'description' => __( 'The globally unique identifier for the user role object.', 'wp-graphql' ),
 					],
 					'name'         => [
 						'type'        => 'String',
-						'description' => __( 'The UI friendly name of the role' ),
+						'description' => __( 'The registered name of the role', 'wp-graphql' ),
 					],
 					'capabilities' => [
 						'type'        => [
 							'list_of' => 'String',
 						],
 						'description' => __( 'The capabilities that belong to this role', 'wp-graphql' ),
+					],
+					'displayName' => [
+						'type' => 'String',
+						'description' => __( 'The display name of the role', 'wp-graphql' ),
 					],
 					'isRestricted' => [
 						'type'        => 'Boolean',

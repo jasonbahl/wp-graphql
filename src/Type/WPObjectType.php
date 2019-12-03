@@ -1,6 +1,8 @@
 <?php
+
 namespace WPGraphQL\Type;
 
+use GraphQL\Error\UserError;
 use GraphQL\Type\Definition\ObjectType;
 use WPGraphQL\Data\DataSource;
 use WPGraphQL\Registry\TypeRegistry;
@@ -28,6 +30,7 @@ class WPObjectType extends ObjectType {
 
 	/**
 	 * Instance of the Type Registry
+	 *
 	 * @var TypeRegistry
 	 */
 	private $type_registry;
@@ -54,6 +57,7 @@ class WPObjectType extends ObjectType {
 
 		/**
 		 * Setup the fields
+		 *
 		 * @return array|mixed
 		 */
 		$config['fields'] = function() use ( $config ) {
@@ -65,11 +69,27 @@ class WPObjectType extends ObjectType {
 			 *
 			 * Types are still responsible for ensuring the fields resolve properly.
 			 */
-			if ( ! empty( $config['interfaces'] ) && is_array( $config['interfaces'] ) ) {
+			if ( ! empty( $config['interfaces'] ) ) {
+				// Throw if "interfaces" invalid.
+				if ( ! is_array( $config['interfaces'] ) ) {
+					throw new UserError(
+						sprintf(
+						/* translators: %s: type name */
+							__( 'Invalid value provided as "interfaces" on %s.', 'wp-graphql' ),
+							$config['name']
+						)
+					);
+				}
+
 				foreach ( $config['interfaces'] as $interface_name ) {
-					$interface_type = $this->type_registry->get_type( $interface_name );
+					$interface_type = null;
+					if ( is_string( $interface_name ) ) {
+						$interface_type = $this->type_registry->get_type( $interface_name );
+					} else if ( $interface_name instanceof WPInterfaceType ) {
+						$interface_type = $interface_name;
+					}
 					$interface_fields = [];
-					if ( $interface_type instanceof WPInterfaceType ) {
+					if ( ! empty( $interface_type ) && $interface_type instanceof WPInterfaceType ) {
 						$interface_config_fields = $interface_type->getFields();
 						foreach ( $interface_config_fields as $interface_field ) {
 							$interface_fields[ $interface_field->name ] = $interface_field->config;
@@ -82,6 +102,7 @@ class WPObjectType extends ObjectType {
 
 			$fields = $this->prepare_fields( $fields, $config['name'], $config );
 			$fields = $this->type_registry->prepare_fields( $fields, $config['name'] );
+
 			return $fields;
 		};
 
@@ -92,28 +113,35 @@ class WPObjectType extends ObjectType {
 			$interfaces = [];
 			if ( ! empty( $config['interfaces'] ) && is_array( $config['interfaces'] ) ) {
 				foreach ( $config['interfaces'] as $interface_name ) {
-					$interface_type = $this->type_registry->get_type( $interface_name );
-					if ( $interface_type instanceof WPInterfaceType ) {
+					$interface_type = null;
+					if ( is_string( $interface_name ) ) {
+						$interface_type = $this->type_registry->get_type( $interface_name );
+					} else if ( $interface_name instanceof WPInterfaceType ) {
+						$interface_type = $interface_name;
+					}
+
+					if ( ! empty( $interface_type ) && $interface_type instanceof WPInterfaceType ) {
 						$interfaces[ $interface_name ] = $interface_type;
 					}
 				}
 			}
+
 			return $interfaces;
 		};
 
 		/**
 		 * Filter the config of WPObjectType
 		 *
-		 * @param array $config Array of configuration options passed to the WPObjectType when instantiating a new type
-		 * @param Object $this The instance of the WPObjectType class
+		 * @param array  $config Array of configuration options passed to the WPObjectType when instantiating a new type
+		 * @param Object $this   The instance of the WPObjectType class
 		 */
 		$config = apply_filters( 'graphql_wp_object_type_config', $config, $this );
 
 		/**
 		 * Run an action when the WPObjectType is instantiating
 		 *
-		 * @param array $config Array of configuration options passed to the WPObjectType when instantiating a new type
-		 * @param Object $this The instance of the WPObjectType class
+		 * @param array  $config Array of configuration options passed to the WPObjectType when instantiating a new type
+		 * @param Object $this   The instance of the WPObjectType class
 		 */
 		do_action( 'graphql_wp_object_type', $config, $this );
 
@@ -195,6 +223,7 @@ class WPObjectType extends ObjectType {
 		 * as it ensures it's not output in just random order
 		 */
 		ksort( $fields );
+
 		return $fields;
 	}
 
