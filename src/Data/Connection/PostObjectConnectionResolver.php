@@ -4,11 +4,11 @@ namespace WPGraphQL\Data\Connection;
 
 use GraphQL\Type\Definition\ResolveInfo;
 use WPGraphQL\AppContext;
+use WPGraphQL\Data\Loader\PostObjectLoader;
 use WPGraphQL\Model\Post;
 use WPGraphQL\Model\PostType;
 use WPGraphQL\Model\Term;
 use WPGraphQL\Model\User;
-use WPGraphQL\Types;
 
 /**
  * Class PostObjectConnectionResolver
@@ -73,13 +73,37 @@ class PostObjectConnectionResolver extends AbstractConnectionResolver {
 		return new \WP_Query( $this->query_args );
 	}
 
+	public function get_ids() {
+		return ! empty( $this->query->posts ) ? $this->query->posts : [];
+	}
+
 	/**
 	 * Return an array of items from the query
 	 *
 	 * @return array
+	 *
+	 * @throws \Exception
 	 */
 	public function get_items() {
-		return ! empty( $this->query->posts ) ? $this->query->posts : [];
+
+		if ( empty( $this->ids ) ) {
+			return [];
+		}
+
+		$items = [];
+		foreach ( $this->ids as $id ) {
+			$post = get_post( $id );
+			$items[$id] = ! empty( $post ) ? new Post( $post ) : null;
+		}
+
+		return ! empty( $items ) ? $items : [];
+	}
+
+	/**
+	 * @return PostObjectLoader
+	 */
+	public function get_loader() {
+		return $this->context->getLoader( 'post_object' );
 	}
 
 	/**
