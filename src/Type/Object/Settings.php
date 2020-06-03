@@ -88,7 +88,7 @@ class Settings {
 									$option = absint( $option );
 									break;
 								case 'string':
-									$option = ! empty( $option ) ? (string) $option : '';
+									$option = ! empty( $option ) ? html_entity_decode( (string) $option ) : '';
 									break;
 								case 'boolean':
 									$option = (bool) $option;
