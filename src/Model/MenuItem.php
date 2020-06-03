@@ -68,7 +68,7 @@ class MenuItem extends Model {
 					return ( ! empty( $this->data->description ) ) ? $this->data->description : null;
 				},
 				'label'            => function() {
-					return ( ! empty( $this->data->title ) ) ? $this->data->title : null;
+					return ( ! empty( $this->data->title ) ) ? html_entity_decode( $this->data->title ) : null;
 				},
 				'linkRelationship' => function() {
 					return ! empty( $this->data->xfn ) ? $this->data->xfn : null;
@@ -83,7 +83,7 @@ class MenuItem extends Model {
 					return ! empty( $this->data->target ) ? $this->data->target : null;
 				},
 				'title'            => function() {
-					return ( ! empty( $this->data->attr_title ) ) ? $this->data->attr_title : null;
+					return ( ! empty( $this->data->attr_title ) ) ? html_entity_decode( $this->data->attr_title ) : null;
 				},
 				'url'              => function() {
 					return ! empty( $this->data->url ) ? $this->data->url : null;
