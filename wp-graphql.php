@@ -81,7 +81,7 @@ if ( ! class_exists( 'WPGraphQL' ) ) :
 		/**
 		 * Holds the Schema def
 		 *
-		 * @var \WPGraphQL\WPSchema
+		 * @var \WPGraphQL\WPSchema|null
 		 */
 		protected static $schema;
 
@@ -114,7 +114,7 @@ if ( ! class_exists( 'WPGraphQL' ) ) :
 		 */
 		public static function instance() {
 
-			if ( ! isset( self::$instance ) && ! ( self::$instance instanceof WPGraphQL ) ) {
+			if ( ! isset( self::$instance ) ) {
 				self::$instance = new WPGraphQL();
 				self::$instance->setup_constants();
 				self::$instance->includes();
@@ -233,9 +233,12 @@ if ( ! class_exists( 'WPGraphQL' ) ) :
 		 * Set whether the request is a GraphQL request or not
 		 *
 		 * @param bool $is_graphql_request
+		 *
+		 * @return bool
 		 */
 		public static function set_is_graphql_request( $is_graphql_request = false ) {
 			self::$is_graphql_request = $is_graphql_request;
+			return self::$is_graphql_request;
 		}
 
 		/**
@@ -247,6 +250,8 @@ if ( ! class_exists( 'WPGraphQL' ) ) :
 
 		/**
 		 * Sets up actions to run at certain spots throughout WordPress and the WPGraphQL execution cycle
+		 *
+		 * @return void
 		 */
 		private function actions() {
 
@@ -301,6 +306,8 @@ if ( ! class_exists( 'WPGraphQL' ) ) :
 		 * If the server is running a lower version than required, throw an exception and prevent
 		 * further execution.
 		 *
+		 * @return bool
+		 *
 		 * @throws Exception
 		 */
 		public function min_php_version_check() {
@@ -309,10 +316,14 @@ if ( ! class_exists( 'WPGraphQL' ) ) :
 				throw new \Exception( sprintf( __( 'The server\'s current PHP version %1$s is lower than the WPGraphQL minimum required version: %2$s', 'wp-graphql' ), PHP_VERSION, GRAPHQL_MIN_PHP_VERSION ) );
 			}
 
+			return true;
+
 		}
 
 		/**
 		 * Determine the post_types and taxonomies, etc that should show in GraphQL
+		 *
+		 * @return void
 		 */
 		public function setup_types() {
 
@@ -326,6 +337,8 @@ if ( ! class_exists( 'WPGraphQL' ) ) :
 		 * This gets the allowed post types and taxonomies when a GraphQL request has started
 		 *
 		 * @deprecated v0.4.3
+		 *
+		 * @return void
 		 */
 		public function get_allowed_types() {
 			self::get_allowed_post_types();
@@ -334,6 +347,8 @@ if ( ! class_exists( 'WPGraphQL' ) ) :
 
 		/**
 		 * Flush permalinks if the GraphQL Endpoint route isn't yet registered
+		 *
+		 * @return void
 		 */
 		public function maybe_flush_permalinks() {
 			$rules = get_option( 'rewrite_rules' );
@@ -344,6 +359,8 @@ if ( ! class_exists( 'WPGraphQL' ) ) :
 
 		/**
 		 * Setup filters
+		 *
+		 * @return void
 		 */
 		private function filters() {
 
@@ -360,6 +377,8 @@ if ( ! class_exists( 'WPGraphQL' ) ) :
 		 * Function to execute when the user activates the plugin.
 		 *
 		 * @since  0.0.17
+		 *
+		 * @return void
 		 */
 		public function activate() {
 			flush_rewrite_rules();
@@ -372,6 +391,8 @@ if ( ! class_exists( 'WPGraphQL' ) ) :
 		 * Function to execute when the user deactivates the plugin.
 		 *
 		 * @since  0.0.17
+		 *
+		 * @return void
 		 */
 		public function deactivate() {
 			flush_rewrite_rules();
@@ -438,7 +459,7 @@ if ( ! class_exists( 'WPGraphQL' ) ) :
 		 *
 		 * @param array $args Arguments to filter allowed post types
 		 *
-		 * @return array
+		 * @return array<string>
 		 * @since  0.0.4
 		 */
 		public static function get_allowed_post_types( $args = [] ) {
@@ -453,11 +474,14 @@ if ( ! class_exists( 'WPGraphQL' ) ) :
 			 */
 			array_map(
 				function( $post_type ) {
-					$post_type_object = get_post_type_object( $post_type );
+					$post_type_object = is_string( $post_type ) ? get_post_type_object( $post_type ) : null;
+					if ( empty( $post_type_object ) ) {
+						return;
+					}
 					if ( empty( $post_type_object->graphql_single_name ) || empty( $post_type_object->graphql_plural_name ) ) {
 						throw new \GraphQL\Error\UserError(
 							sprintf(
-								/* translators: %s will replaced with the registered type */
+							/* translators: %s will replaced with the registered type */
 								__( 'The %s post_type isn\'t configured properly to show in GraphQL. It needs a "graphql_single_name" and a "graphql_plural_name"', 'wp-graphql' ),
 								$post_type_object->name
 							)
@@ -488,7 +512,7 @@ if ( ! class_exists( 'WPGraphQL' ) ) :
 		 * the list of allowed_taxonomies to add/remove additional taxonomies
 		 *
 		 * @since  0.0.4
-		 * @return array
+		 * @return array<string>
 		 */
 		public static function get_allowed_taxonomies() {
 
@@ -506,11 +530,14 @@ if ( ! class_exists( 'WPGraphQL' ) ) :
 			 */
 			array_map(
 				function( $taxonomy ) {
-					$tax_object = get_taxonomy( $taxonomy );
+					$tax_object = is_string( $taxonomy ) ? get_taxonomy( $taxonomy ) : null;
+					if ( empty( $tax_object ) ) {
+						return;
+					}
 					if ( empty( $tax_object->graphql_single_name ) || empty( $tax_object->graphql_plural_name ) ) {
 						throw new \GraphQL\Error\UserError(
 							sprintf(
-								/* translators: %s will replaced with the registered taxonomty */
+							/* translators: %s will replaced with the registered taxonomty */
 								__( 'The %s taxonomy isn\'t configured properly to show in GraphQL. It needs a "graphql_single_name" and a "graphql_plural_name"', 'wp-graphql' ),
 								$tax_object->name
 							)
@@ -529,16 +556,19 @@ if ( ! class_exists( 'WPGraphQL' ) ) :
 
 		/**
 		 * Allow Schema to be cleared
+		 *
+		 * @return null
 		 */
 		public static function clear_schema() {
 			self::$schema = null;
+			return self::$schema;
 		}
 
 		/**
 		 * Returns the Schema as defined by static registrations throughout
 		 * the WP Load.
 		 *
-		 * @return \WPGraphQL\WPSchema
+		 * @return \WPGraphQL\WPSchema|null
 		 *
 		 * @throws Exception
 		 */
@@ -560,7 +590,7 @@ if ( ! class_exists( 'WPGraphQL' ) ) :
 				 *
 				 * @since 0.0.5
 				 *
-				 * @param array                 $schema      The executable Schema that GraphQL executes against
+				 * @param array|null            $schema      The executable Schema that GraphQL executes against
 				 * @param \WPGraphQL\AppContext $app_context Object The AppContext object containing all of the
 				 *                                           information about the context we know at this point
 				 */
@@ -606,6 +636,19 @@ if ( ! class_exists( 'WPGraphQL' ) ) :
 
 			return $app_context;
 		}
+
+		/**
+		 * Whether GraphQL Debug is enabled. Default false
+		 *
+		 * @return bool
+		 */
+		public static function is_graphql_debug() {
+			if ( defined( 'GRAPHQL_DEBUG' ) ) {
+				return GRAPHQL_DEBUG;
+			} else {
+				return false;
+			}
+		}
 	}
 endif;
 
@@ -614,6 +657,7 @@ if ( ! function_exists( 'graphql_init' ) ) {
 	 * Function that instantiates the plugins main class
 	 *
 	 * @since 0.0.1
+	 * @return object
 	 */
 	function graphql_init() {
 

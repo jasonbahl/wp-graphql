@@ -7,6 +7,7 @@
 
 namespace WPGraphQL\Model;
 
+use GraphQL\Error\UserError;
 use GraphQLRelay\Relay;
 use WPGraphQL\Utils\Utils;
 
@@ -52,8 +53,7 @@ use WPGraphQL\Utils\Utils;
  * @property string  $featuredImageId
  * @property int     $featuredImageDatabaseId
  * @property string  $pageTemplate
- * @property int     previewRevisionDatabaseId
- *
+ * @property int     $previewRevisionDatabaseId
  * @property string  $captionRaw
  * @property string  $captionRendered
  * @property string  $altText
@@ -116,18 +116,28 @@ class Post extends Model {
 		/**
 		 * Set the data as the Post object
 		 */
-		$this->data             = $post;
-		$this->post_type_object = isset( $post->post_type ) ? get_post_type_object( $post->post_type ) : null;
+		$this->data       = $post;
+		$post_type_object = isset( $post->post_type ) ? get_post_type_object( $post->post_type ) : null;
+
+		if ( empty( $this->data ) ) {
+			throw new \Exception( __( 'The post passed to the Post Model does not exist', 'wp-graphql' ) );
+		}
 
 		/**
 		 * If the post type is 'revision', we need to get the post_type_object
 		 * of the parent post type to determine capabilities from
 		 */
-		if ( 'revision' === $post->post_type && ! empty( $post->post_parent ) ) {
+		if ( 'revision' === $this->data->post_type && ! empty( $this->data->post_parent ) ) {
 			$this->filter_revision_meta = true;
-			$parent                     = get_post( absint( $post->post_parent ) );
-			$this->post_type_object     = get_post_type_object( $parent->post_type );
+			$parent                     = get_post( absint( $this->data->post_parent ) );
+			$post_type_object           = ! empty( $parent ) ? get_post_type_object( $parent->post_type ) : null;
 		}
+
+		if ( empty( $post_type_object ) ) {
+			throw new \Exception( sprintf( __( 'The post type %s is not registered', 'wp-graphql' ), isset( $post->post_type ) ? $post->post_type : 'undefined' ) );
+		}
+
+		$this->post_type_object = $post_type_object;
 
 		/**
 		 * Mimic core functionality for templates, as seen here:
@@ -153,11 +163,11 @@ class Post extends Model {
 
 		];
 
-		$allowed_restricted_fields[] = $this->post_type_object->graphql_single_name . 'Id';
+		$allowed_restricted_fields[] = isset( $this->post_type_object->graphql_single_name ) ? $this->post_type_object->graphql_single_name : $this->post_type_object->name . 'Id';
 
 		$restricted_cap = $this->get_restricted_cap();
 
-		parent::__construct( $restricted_cap, $allowed_restricted_fields, $post->post_author );
+		parent::__construct( $restricted_cap, $allowed_restricted_fields, (int) $post->post_author );
 
 	}
 

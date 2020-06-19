@@ -7,9 +7,16 @@ use GraphQLRelay\Relay;
 use WPGraphQL\AppContext;
 use WPGraphQL\Data\UserMutation;
 
+/**
+ * Class UserUpdate
+ *
+ * @package WPGraphQL\Mutation
+ */
 class UserUpdate {
 	/**
 	 * Registers the CommentCreate mutation.
+	 *
+	 * @return void
 	 */
 	public static function register_mutation() {
 		register_graphql_mutation(
@@ -59,14 +66,19 @@ class UserUpdate {
 	public static function mutate_and_get_payload() {
 		return function ( $input, AppContext $context, ResolveInfo $info ) {
 
-			$id_parts      = ! empty( $input['id'] ) ? Relay::fromGlobalId( $input['id'] ) : null;
-			$existing_user = get_user_by( 'ID', $id_parts['id'] );
+			$id_parts = ! empty( $input['id'] ) ? Relay::fromGlobalId( $input['id'] ) : null;
 
 			/**
 			 * If there's no existing user, throw an exception
 			 */
-			if ( empty( $id_parts['id'] ) || false === $existing_user ) {
-				throw new UserError( $id_parts['id'] );
+			if ( ! isset( $id_parts['id'] ) || empty( $id_parts['id'] ) ) {
+				throw new UserError( sprintf( __( 'The ID $s could not be decoded', 'wp-graphql' ), $input['id'] ) );
+			}
+
+			$existing_user = get_user_by( 'ID', $id_parts['id'] );
+
+			if ( empty( $existing_user ) ) {
+				throw new UserError( sprintf( __( 'The user with database ID %d does not exist', 'wp-graphql' ), $id_parts['id'] ) );
 			}
 
 			if ( ! current_user_can( 'edit_user', $existing_user->ID ) ) {

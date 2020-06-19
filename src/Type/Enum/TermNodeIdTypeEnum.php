@@ -2,6 +2,11 @@
 
 namespace WPGraphQL\Type\Enum;
 
+/**
+ * Class TermNodeIdTypeEnum
+ *
+ * @package WPGraphQL\Type\Enum
+ */
 class TermNodeIdTypeEnum {
 
 	/**
@@ -27,6 +32,10 @@ class TermNodeIdTypeEnum {
 		if ( ! empty( $allowed_taxonomies ) && is_array( $allowed_taxonomies ) ) {
 			foreach ( $allowed_taxonomies as $taxonomy ) {
 				$taxonomy_object = get_taxonomy( $taxonomy );
+
+				if ( ! isset( $taxonomy_object->graphql_single_name ) ) {
+					return;
+				}
 
 				register_graphql_enum_type(
 					$taxonomy_object->graphql_single_name . 'IdType',

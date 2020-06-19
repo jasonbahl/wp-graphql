@@ -4,7 +4,18 @@ namespace WPGraphQL\Type\Enum;
 
 use WPGraphQL\Type\WPEnumType;
 
+/**
+ * Class MimeTypeEnum
+ *
+ * @package WPGraphQL\Type\Enum
+ */
 class MimeTypeEnum {
+
+	/**
+	 * Register the MimeTypeEnum Type
+	 *
+	 * @return void
+	 */
 	public static function register_type() {
 		$values = [
 			'IMAGE_JPEG' => [

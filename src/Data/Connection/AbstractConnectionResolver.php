@@ -816,9 +816,11 @@ abstract class AbstractConnectionResolver {
 				 */
 				$this->edges = apply_filters( 'graphql_connection_edges', $this->get_edges(), $this );
 
-				if ( true === $this->one_to_one ) {
+				if ( true === $this->one_to_one && ! empty( $this->edges ) ) {
 					// For one to one connections, return the first edge.
-					$connection = ! empty( $this->edges[ array_key_first( $this->edges ) ] ) ? $this->edges[ array_key_first( $this->edges ) ] : null;
+					$key        = array_key_first( $this->edges );
+					$connection = null !== $key && ! empty( $this->edges[ $key ] ) ? $this->edges[ $key ] : null;
+
 				} else {
 					// For plural connections (default) return edges/nodes/pageInfo
 					$connection = [

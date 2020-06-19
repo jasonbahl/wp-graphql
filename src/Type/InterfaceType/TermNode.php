@@ -6,12 +6,19 @@ use WPGraphQL\Data\DataSource;
 use WPGraphQL\Model\Term;
 use WPGraphQL\Registry\TypeRegistry;
 
+/**
+ * Class TermNode
+ *
+ * @package WPGraphQL\Type\InterfaceType
+ */
 class TermNode {
 
 	/**
 	 * Register the TermNode Interface
 	 *
-	 * @param TypeRegistry $type_registry
+	 * @param TypeRegistry $type_registry The WPGraphQL Type Registry
+	 *
+	 * @return void
 	 */
 	public static function register_type( TypeRegistry $type_registry ) {
 

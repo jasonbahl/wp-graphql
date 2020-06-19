@@ -2,7 +2,18 @@
 
 namespace WPGraphQL\Type\Object;
 
+/**
+ * Class Menu
+ *
+ * @package WPGraphQL\Type\Object
+ */
 class Menu {
+
+	/**
+	 * Register the Menu Type
+	 *
+	 * @return void
+	 */
 	public static function register_type() {
 		register_graphql_object_type(
 			'Menu',

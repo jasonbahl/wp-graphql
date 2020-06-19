@@ -3,12 +3,18 @@ namespace WPGraphQL\Mutation;
 
 use GraphQL\Error\UserError;
 use GraphQLRelay\Relay;
-use WPGraphQL\Data\DataSource;
 use WPGraphQL\Model\Post;
 
+/**
+ * Class MediaItemDelete
+ *
+ * @package WPGraphQL\Mutation
+ */
 class MediaItemDelete {
 	/**
 	 * Registers the MediaItemDelete mutation.
+	 *
+	 * @return void
 	 */
 	public static function register_mutation() {
 		register_graphql_mutation(
@@ -54,7 +60,7 @@ class MediaItemDelete {
 				'resolve'     => function ( $payload ) {
 					$deleted = (object) $payload['mediaItemObject'];
 
-					return ! empty( $deleted->ID ) ? Relay::toGlobalId( 'post', absint( $deleted->ID ) ) : null;
+					return ! empty( $deleted->ID ) ? Relay::toGlobalId( 'post', $deleted->ID ) : null;
 				},
 			],
 			'mediaItem' => [
@@ -78,6 +84,12 @@ class MediaItemDelete {
 		return function ( $input ) {
 			$post_type_object = get_post_type_object( 'attachment' );
 
+			if ( empty( $post_type_object ) ) {
+				throw new \Exception( __( 'The attachment post type is not registered.', 'wp-graphql' ) );
+			}
+
+			$type_name = isset( $post_type_object->graphql_single_name ) ? $post_type_object->graphql_single_name : $post_type_object->name;
+
 			/**
 			 * Get the ID from the global ID
 			 */
@@ -94,7 +106,7 @@ class MediaItemDelete {
 			/**
 			 * Stop now if a user isn't allowed to delete a mediaItem
 			 */
-			if ( ! current_user_can( $post_type_object->cap->delete_post, absint( $id_parts['id'] ) ) ) {
+			if ( ! isset( $post_type_object->cap->delete_post ) || ! current_user_can( $post_type_object->cap->delete_post, absint( $id_parts['id'] ) ) ) {
 				throw new UserError( __( 'Sorry, you are not allowed to delete mediaItems', 'wp-graphql' ) );
 			}
 
@@ -107,12 +119,16 @@ class MediaItemDelete {
 			 * Get the mediaItem object before deleting it
 			 */
 			$media_item_before_delete = get_post( absint( $id_parts['id'] ) );
-			$media_item_before_delete = isset( $media_item_before_delete->ID ) && isset( $media_item_before_delete->ID ) ? new Post( $media_item_before_delete ) : $media_item_before_delete;
+			$media_item_before_delete = ! empty( $media_item_before_delete ) ? new Post( $media_item_before_delete ) : $media_item_before_delete;
+
+			if ( empty( $media_item_before_delete ) ) {
+				throw new UserError( sprintf( __( 'The %1$s with id $2%2$s does not exist and can not be deleted', 'wp-graphql' ), $type_name, $input['id'] ) );
+			}
 
 			/**
 			 * If the mediaItem isn't of the attachment post type, throw an error
 			 */
-			if ( 'attachment' !== $media_item_before_delete->post_type ) {
+			if ( ! isset( $media_item_before_delete->post_type ) || 'attachment' !== $media_item_before_delete->post_type ) {
 				throw new UserError( sprintf( __( 'Sorry, the item you are trying to delete is a %1%s, not a mediaItem', 'wp-graphql' ), $media_item_before_delete->post_type ) );
 			}
 
@@ -120,7 +136,7 @@ class MediaItemDelete {
 			 * If the mediaItem is already in the trash, and the forceDelete input was not passed,
 			 * don't remove from the trash
 			 */
-			if ( 'trash' === $media_item_before_delete->post_status ) {
+			if ( ! isset( $media_item_before_delete->post_status ) || 'trash' === $media_item_before_delete->post_status ) {
 				if ( true !== $force_delete ) {
 					// Translators: the first placeholder is the post_type of the object being deleted and the second placeholder is the unique ID of that object
 					throw new UserError( sprintf( __( 'The mediaItem with id %1$s is already in the trash. To remove from the trash, use the forceDelete input', 'wp-graphql' ), $input['id'] ) );

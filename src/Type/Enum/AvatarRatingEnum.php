@@ -1,7 +1,18 @@
 <?php
 namespace WPGraphQL\Type\Enum;
 
+/**
+ * Class AvatarRatingEnum
+ *
+ * @package WPGraphQL\Type\Enum
+ */
 class AvatarRatingEnum {
+
+	/**
+	 * Register the AvatarRatingEnum Type
+	 *
+	 * @return void
+	 */
 	public static function register_type() {
 		register_graphql_enum_type(
 			'AvatarRatingEnum',

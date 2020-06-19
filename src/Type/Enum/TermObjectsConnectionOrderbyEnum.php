@@ -1,7 +1,18 @@
 <?php
 namespace WPGraphQL\Type\Enum;
 
+/**
+ * Class TermObjectsConnectionOrderbyEnum
+ *
+ * @package WPGraphQL\Type\Enum
+ */
 class TermObjectsConnectionOrderbyEnum {
+
+	/**
+	 * Register the TermObjectsConnectionOrderbyEnum Enum
+	 *
+	 * @return void
+	 */
 	public static function register_type() {
 		register_graphql_enum_type(
 			'TermObjectsConnectionOrderbyEnum',

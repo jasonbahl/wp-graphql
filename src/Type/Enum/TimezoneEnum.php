@@ -4,7 +4,18 @@ namespace WPGraphQL\Type\Enum;
 
 use WPGraphQL\Type\WPEnumType;
 
+/**
+ * Class TimezoneEnum
+ *
+ * @package WPGraphQL\Type\Enum
+ */
 class TimezoneEnum {
+
+	/**
+	 * Register the Timezone Enum Type
+	 *
+	 * @return void
+	 */
 	public static function register_type() {
 		/**
 		 * Logic for this taken from the `wp_timezone_choice` here:
@@ -28,7 +39,7 @@ class TimezoneEnum {
 			'Pacific',
 		];
 		// Load translations for continents and cities.
-		if ( ! $mo_loaded || $locale !== $locale_loaded ) {
+		if ( defined( 'WP_LANG_DIR' ) && ! $mo_loaded || $locale !== $locale_loaded ) {
 			$locale_loaded = $locale ? $locale : get_locale();
 			$mofile        = WP_LANG_DIR . '/continents-cities-' . $locale_loaded . '.mo';
 			unload_textdomain( 'continents-cities' );

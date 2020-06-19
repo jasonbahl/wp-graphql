@@ -6,12 +6,18 @@ use GraphQL\Error\UserError;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQLRelay\Relay;
 use WPGraphQL\AppContext;
-use WPGraphQL\Data\DataSource;
 use WPGraphQL\Data\MediaItemMutation;
 
+/**
+ * Class MediaItemUpdate
+ *
+ * @package WPGraphQL\Mutation
+ */
 class MediaItemUpdate {
 	/**
 	 * Registers the MediaItemUpdate mutation.
+	 *
+	 * @return void
 	 */
 	public static function register_mutation() {
 		register_graphql_mutation(
@@ -30,6 +36,12 @@ class MediaItemUpdate {
 	 * @return array
 	 */
 	public static function get_input_fields() {
+
+		$post_type_object = get_post_type_object( 'attachment' );
+		if ( empty( $post_type_object ) ) {
+			return [];
+		}
+
 		return array_merge(
 			MediaItemCreate::get_input_fields(),
 			[
@@ -38,7 +50,7 @@ class MediaItemUpdate {
 						'non_null' => 'ID',
 					],
 					// translators: the placeholder is the name of the type of post object being updated
-					'description' => sprintf( __( 'The ID of the %1$s object', 'wp-graphql' ), get_post_type_object( 'attachment' )->graphql_single_name ),
+					'description' => sprintf( __( 'The ID of the %1$s object', 'wp-graphql' ), isset( $post_type_object->graphql_single_name ) ? $post_type_object->graphql_single_name : $post_type_object->name ),
 				],
 			]
 		);
@@ -61,15 +73,20 @@ class MediaItemUpdate {
 	public static function mutate_and_get_payload() {
 		return function ( $input, AppContext $context, ResolveInfo $info ) {
 			$post_type_object = get_post_type_object( 'attachment' );
-			$mutation_name    = 'updateMediaItem';
+
+			if ( empty( $post_type_object ) ) {
+				return null;
+			}
+
+			$mutation_name = 'updateMediaItem';
 
 			$id_parts            = ! empty( $input['id'] ) ? Relay::fromGlobalId( $input['id'] ) : null;
-			$existing_media_item = get_post( absint( $id_parts['id'] ) );
+			$existing_media_item = isset( $id_parts['id'] ) && absint( $id_parts['id'] ) ? get_post( absint( $id_parts['id'] ) ) : null;
 
 			/**
 			 * If there's no existing mediaItem, throw an exception
 			 */
-			if ( null === $existing_media_item ) {
+			if ( empty( $id_parts['id'] ) || null === $existing_media_item ) {
 				throw new UserError( __( 'No mediaItem with that ID could be found to update', 'wp-graphql' ) );
 			} else {
 				$author_id = $existing_media_item->post_author;
@@ -86,7 +103,7 @@ class MediaItemUpdate {
 			/**
 			 * Stop now if a user isn't allowed to edit mediaItems
 			 */
-			if ( ! current_user_can( $post_type_object->cap->edit_posts ) ) {
+			if ( ! isset( $post_type_object->cap->edit_posts ) || ! current_user_can( $post_type_object->cap->edit_posts ) ) {
 				throw new UserError( __( 'Sorry, you are not allowed to update mediaItems', 'wp-graphql' ) );
 			}
 
@@ -103,7 +120,7 @@ class MediaItemUpdate {
 			 * Check to see if the existing_media_item author matches the current user,
 			 * if not they need to be able to edit others posts to proceed
 			 */
-			if ( get_current_user_id() !== $author_id && ! current_user_can( $post_type_object->cap->edit_others_posts ) ) {
+			if ( get_current_user_id() !== $author_id && ( ! isset( $post_type_object->cap->edit_others_posts ) || ! current_user_can( $post_type_object->cap->edit_others_posts ) ) ) {
 				throw new UserError( __( 'Sorry, you are not allowed to update mediaItems as this user.', 'wp-graphql' ) );
 			}
 
@@ -120,7 +137,8 @@ class MediaItemUpdate {
 			 * This will not fail as long as we have an ID in $post_args
 			 * Thanks to the validation above we will always have the ID
 			 */
-			$post_id = wp_update_post( wp_slash( (array) $post_args ), true );
+			$post_args = (array) wp_slash( $post_args );
+			$post_id   = wp_update_post( $post_args, true );
 
 			/**
 			 * This updates additional data not part of the posts table (postmeta, terms, other relations, etc)
@@ -128,7 +146,7 @@ class MediaItemUpdate {
 			 * The input for the postObjectMutation will be passed, along with the $new_post_id for the
 			 * postObject that was updated so that relations can be set, meta can be updated, etc.
 			 */
-			MediaItemMutation::update_additional_media_item_data( $post_id, $input, $post_type_object, $mutation_name, $context, $info );
+			MediaItemMutation::update_additional_media_item_data( absint( $post_id ), $input, $post_type_object, $mutation_name, $context, $info );
 
 			/**
 			 * Return the payload

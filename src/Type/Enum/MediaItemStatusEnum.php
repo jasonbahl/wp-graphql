@@ -4,7 +4,18 @@ namespace WPGraphQL\Type\Enum;
 
 use WPGraphQL\Type\WPEnumType;
 
+/**
+ * Class MediaItemStatusEnum
+ *
+ * @package WPGraphQL\Type\Enum
+ */
 class MediaItemStatusEnum {
+
+	/**
+	 * Register the MediaItemStatusEnum Type
+	 *
+	 * @return void
+	 */
 	public static function register_type() {
 		$values = [];
 

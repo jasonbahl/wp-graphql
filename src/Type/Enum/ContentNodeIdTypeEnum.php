@@ -2,6 +2,11 @@
 
 namespace WPGraphQL\Type\Enum;
 
+/**
+ * Class ContentNodeIdTypeEnum
+ *
+ * @package WPGraphQL\Type\Enum
+ */
 class ContentNodeIdTypeEnum {
 
 	/**
@@ -23,8 +28,13 @@ class ContentNodeIdTypeEnum {
 		if ( ! empty( $allowed_post_types ) && is_array( $allowed_post_types ) ) {
 			foreach ( $allowed_post_types as $post_type ) {
 				$post_type_object = get_post_type_object( $post_type );
-				$values           = self::get_values();
-				if ( ! $post_type_object->hierarchical ) {
+
+				if ( ! isset( $post_type_object->graphql_single_name ) ) {
+					return;
+				}
+
+				$values = self::get_values();
+				if ( ! isset( $post_type_object->hierarchical ) || false === $post_type_object->hierarchical ) {
 					$values['slug'] = [
 						'name'        => 'SLUG',
 						'value'       => 'slug',
@@ -32,7 +42,7 @@ class ContentNodeIdTypeEnum {
 					];
 				}
 
-				if ( 'attachment' === $post_type_object->name ) {
+				if ( isset( $post_type_object->name ) && 'attachment' === $post_type_object->name ) {
 					$values['source_url'] = [
 						'name'        => 'SOURCE_URL',
 						'value'       => 'source_url',

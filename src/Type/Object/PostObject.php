@@ -17,10 +17,16 @@ class PostObject {
 	 *
 	 * @param \WP_Post_Type $post_type_object Post type.
 	 * @param TypeRegistry  $type_registry    The Type Registry
+	 *
+	 * @return void
 	 */
 	public static function register_post_object_types( $post_type_object, $type_registry ) {
 
-		$single_name = $post_type_object->graphql_single_name;
+		$single_name = isset( $post_type_object->graphql_single_name ) ? $post_type_object->graphql_single_name : null;
+
+		if ( empty( $single_name ) ) {
+			return;
+		}
 
 		$interfaces = [ 'Node', 'ContentNode', 'UniformResourceIdentifiable' ];
 
@@ -84,7 +90,12 @@ class PostObject {
 		/**
 		 * Register fields to the Type used for attachments (MediaItem)
 		 */
-		if ( 'attachment' === $post_type_object->name && true === $post_type_object->show_in_graphql && isset( $post_type_object->graphql_single_name ) ) {
+		if (
+			'attachment' === $post_type_object->name &&
+			isset( $post_type_object->show_in_graphql ) &&
+			true === $post_type_object->show_in_graphql &&
+			isset( $post_type_object->graphql_single_name )
+		) {
 
 			/**
 			 * Register fields custom to the MediaItem Type
@@ -151,7 +162,7 @@ class PostObject {
 							}
 
 							$url = wp_get_attachment_image_src( $source->ID, $size );
-							if ( empty( $url[0] ) ) {
+							if ( ! is_array( $url ) || empty( $url[0] ) ) {
 								return null;
 							}
 
@@ -228,8 +239,13 @@ class PostObject {
 	 * @return array
 	 */
 	public static function get_post_object_fields( $post_type_object, $type_registry ) {
-		$single_name = $post_type_object->graphql_single_name;
-		$fields      = [
+		$single_name = isset( $post_type_object->graphql_single_name ) ? $post_type_object->graphql_single_name : null;
+
+		if ( empty( $single_name ) ) {
+			return [];
+		}
+
+		$fields = [
 			'id'                => [
 				'description' => sprintf(
 				/* translators: %s: custom post-type name */
@@ -268,17 +284,19 @@ class PostObject {
 				],
 				true
 			) ) {
-			$fields['ancestors']['deprecationReason'] = __( 'This content type is not hierarchical and typcially will not have ancestors', 'wp-graphql' );
-			$fields['parent']['deprecationReason']    = __( 'This content type is not hierarchical and typcially will not have a parent', 'wp-graphql' );
+			$fields['ancestors']['deprecationReason'] = __( 'This content type is not hierarchical and typically will not have ancestors', 'wp-graphql' );
+			$fields['parent']['deprecationReason']    = __( 'This content type is not hierarchical and typically will not have a parent', 'wp-graphql' );
 		}
 
 		$fields['template'] = [
 			'description' => __( 'The template assigned to the node', 'wp-graphql' ),
 			'type'        => 'ContentTemplateUnion',
-			'resolve'     => function( Post $post_object, $args, $context, $info ) use ( $post_type_object, $type_registry ) {
+			'resolve'     => function( Post $post_object, $args, $context, $info ) {
 
-				$registered_templates = wp_get_theme()->get_post_templates();
-				if ( ! isset( $registered_templates[ $post_object->post_type ] ) ) {
+				$theme                = wp_get_theme();
+				$registered_templates = (array) $theme->get_post_templates();
+
+				if ( empty( $registered_templates ) || ! is_array( $registered_templates ) || ! isset( $registered_templates[ $post_object->post_type ] ) ) {
 					return null;
 				}
 

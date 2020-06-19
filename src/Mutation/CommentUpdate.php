@@ -14,8 +14,11 @@ use WPGraphQL\Data\CommentMutation;
  * @package WPGraphQL\Mutation
  */
 class CommentUpdate {
+
 	/**
 	 * Registers the CommentUpdate mutation.
+	 *
+	 * @return void
 	 */
 	public static function register_mutation() {
 		register_graphql_mutation(
@@ -71,8 +74,17 @@ class CommentUpdate {
 			}
 
 			$id_parts     = ! empty( $input['id'] ) ? Relay::fromGlobalId( $input['id'] ) : null;
+
+			if ( empty( $id_parts ) ) {
+				throw new UserError( sprintf( __( 'The provided id %s is invalid', 'wp-graphql'  ), $input['id'] ) );
+			}
+
 			$comment_id   = absint( $id_parts['id'] );
 			$comment_args = get_comment( $comment_id, ARRAY_A );
+
+			if ( empty( $comment_args ) || ! is_array( $comment_args ) || ! isset( $comment_args['user_id'] ) ) {
+				throw new UserError( sprintf( __( 'Comment with ID %s could not be updated', 'wp-graphql' ), $input['id'] ) );
+			}
 
 			/**
 			 * Map all of the args from GraphQL to WordPress friendly args array

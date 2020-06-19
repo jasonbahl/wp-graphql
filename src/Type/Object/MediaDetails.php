@@ -2,7 +2,18 @@
 
 namespace WPGraphQL\Type\Object;
 
+/**
+ * Class MediaDetails
+ *
+ * @package WPGraphQL\Type\Object
+ */
 class MediaDetails {
+
+	/**
+	 * Register the MediaDetails Type
+	 *
+	 * @return void
+	 */
 	public static function register_type() {
 		register_graphql_object_type(
 			'MediaDetails',

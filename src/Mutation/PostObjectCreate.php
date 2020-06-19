@@ -14,12 +14,20 @@ use WPGraphQL\Data\PostObjectMutation;
  * @package WPGraphQL\Mutation
  */
 class PostObjectCreate {
+
 	/**
 	 * Registers the PostObjectCreate mutation.
 	 *
 	 * @param \WP_Post_Type $post_type_object   The post type of the mutation.
+	 *
+	 * @return void
 	 */
 	public static function register_mutation( \WP_Post_Type $post_type_object ) {
+
+		if ( ! isset( $post_type_object->graphql_single_name ) ) {
+			return;
+		}
+
 		$mutation_name = 'create' . ucwords( $post_type_object->graphql_single_name );
 
 		register_graphql_mutation(
@@ -141,6 +149,10 @@ class PostObjectCreate {
 				if ( in_array( $taxonomy, get_object_taxonomies( $post_type_object->name ), true ) ) {
 					$tax_object = get_taxonomy( $taxonomy );
 
+					if ( ! isset( $post_type_object->graphql_single_name ) || ! isset( $tax_object->graphql_single_name ) || ! isset( $tax_object->graphql_plural_name ) ) {
+						continue;
+					}
+
 					register_graphql_input_type(
 						$post_type_object->graphql_single_name . ucfirst( $tax_object->graphql_plural_name ) . 'NodeInput',
 						[
@@ -203,16 +215,19 @@ class PostObjectCreate {
 	 * @return array
 	 */
 	public static function get_output_fields( $post_type_object ) {
+
+		$type_name = isset( $post_type_object->graphql_single_name ) ? $post_type_object->graphql_single_name : $post_type_object->name;
+
 		return [
-			$post_type_object->graphql_single_name => [
-				'type'    => $post_type_object->graphql_single_name,
-				'resolve' => function ( $payload, $args, AppContext $context, ResolveInfo $info ) use ( $post_type_object ) {
+			$type_name => [
+				'type'    => $type_name,
+				'resolve' => function ( $payload, $args, AppContext $context, ResolveInfo $info ) {
 
 					if ( empty( $payload['postObjectId'] ) || ! absint( $payload['postObjectId'] ) ) {
 						return null;
 					}
 
-					return DataSource::resolve_post_object( $payload['postObjectId'], $context );
+					return $context->get_loader( 'post' )->load_deferred( absint( $payload['postObjectId'] ) );
 				},
 			],
 		];
@@ -229,6 +244,8 @@ class PostObjectCreate {
 	public static function mutate_and_get_payload( $post_type_object, $mutation_name ) {
 		return function ( $input, AppContext $context, ResolveInfo $info ) use ( $post_type_object, $mutation_name ) {
 
+			$type_name = isset( $post_type_object->graphql_single_name ) ? $post_type_object->graphql_single_name : $post_type_object->name;
+
 			/**
 			 * Throw an exception if there's no input
 			 */
@@ -239,18 +256,18 @@ class PostObjectCreate {
 			/**
 			 * Stop now if a user isn't allowed to create a post
 			 */
-			if ( ! current_user_can( $post_type_object->cap->create_posts ) ) {
+			if ( ! isset( $post_type_object->cap->create_posts ) || ! current_user_can( $post_type_object->cap->create_posts ) ) {
 				// translators: the $post_type_object->graphql_plural_name placeholder is the name of the object being mutated
-				throw new UserError( sprintf( __( 'Sorry, you are not allowed to create %1$s', 'wp-graphql' ), $post_type_object->graphql_plural_name ) );
+				throw new UserError( sprintf( __( 'Sorry, you are not allowed to create %1$s nodes', 'wp-graphql' ), $type_name ) );
 			}
 
 			/**
 			 * If the post being created is being assigned to another user that's not the current user, make sure
 			 * the current user has permission to edit others posts for this post_type
 			 */
-			if ( ! empty( $input['authorId'] ) && get_current_user_id() !== $input['authorId'] && ! current_user_can( $post_type_object->cap->edit_others_posts ) ) {
+			if ( ! empty( $input['authorId'] ) && get_current_user_id() !== $input['authorId'] && ( ! isset( $post_type_object->cap->edit_others_posts ) || ! current_user_can( $post_type_object->cap->edit_others_posts ) ) ) {
 				// translators: the $post_type_object->graphql_plural_name placeholder is the name of the object being mutated
-				throw new UserError( sprintf( __( 'Sorry, you are not allowed to create %1$s as this user', 'wp-graphql' ), $post_type_object->graphql_plural_name ) );
+				throw new UserError( sprintf( __( 'Sorry, you are not allowed to create %1$s nodes as this user', 'wp-graphql' ), $type_name ) );
 			}
 
 			/**
@@ -292,7 +309,8 @@ class PostObjectCreate {
 			/**
 			 * Insert the post and retrieve the ID
 			 */
-			$post_id = wp_insert_post( wp_slash( (array) $post_args ), true );
+			$post_args = (array) wp_slash( $post_args );
+			$post_id   = wp_insert_post( $post_args, true );
 
 			/**
 			 * Throw an exception if the post failed to create

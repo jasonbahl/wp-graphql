@@ -71,7 +71,7 @@ class PostType extends Model {
 			'isRestricted',
 		];
 
-		parent::__construct( $post_type->cap->edit_posts, $allowed_restricted_fields );
+		parent::__construct( isset( $post_type->cap->edit_posts ) ? $post_type->cap->edit_posts : 'edit_posts', $allowed_restricted_fields );
 
 	}
 
@@ -82,7 +82,7 @@ class PostType extends Model {
 	 */
 	protected function is_private() {
 
-		if ( false === $this->data->public && ! current_user_can( $this->data->cap->edit_posts ) ) {
+		if ( false === $this->data->public && ( ! isset( $this->data->cap->edit_posts ) || ! current_user_can( $this->data->cap->edit_posts ) ) ) {
 			return true;
 		}
 
@@ -168,7 +168,7 @@ class PostType extends Model {
 					return ! empty( $this->data->rest_controller_class ) ? $this->data->rest_controller_class : null;
 				},
 				'showInGraphql'       => function() {
-					return ( true === $this->data->show_in_graphql ) ? true : false;
+					return isset( $this->data->show_in_graphql ) && true === $this->data->show_in_graphql ? true : false;
 				},
 				'graphqlSingleName'   => function() {
 					return ! empty( $this->data->graphql_single_name ) ? $this->data->graphql_single_name : null;

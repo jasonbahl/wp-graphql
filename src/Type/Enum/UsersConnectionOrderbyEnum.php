@@ -2,7 +2,18 @@
 
 namespace WPGraphQL\Type\Enum;
 
+/**
+ * Class UsersConnectionOrderbyEnum
+ *
+ * @package WPGraphQL\Type\Enum
+ */
 class UsersConnectionOrderbyEnum {
+
+	/**
+	 * Register the UsersConnectionOrderbyEnum Type
+	 *
+	 * @return void
+	 */
 	public static function register_type() {
 
 		register_graphql_enum_type(

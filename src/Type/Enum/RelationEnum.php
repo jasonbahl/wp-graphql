@@ -2,7 +2,18 @@
 
 namespace WPGraphQL\Type\Enum;
 
+/**
+ * Class RelationEnum
+ *
+ * @package WPGraphQL\Type\Enum
+ */
 class RelationEnum {
+
+	/**
+	 * Register the RelationEnum Type
+	 *
+	 * @return void
+	 */
 	public static function register_type() {
 		register_graphql_enum_type(
 			'RelationEnum',

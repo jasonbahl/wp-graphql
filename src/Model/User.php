@@ -65,7 +65,7 @@ class User extends Model {
 	public function __construct( \WP_User $user ) {
 
 		// Explicitly remove the user_pass early on so it doesn't show up in filters/hooks
-		$user->user_pass = null;
+		unset( $user->user_pass );
 		$this->data      = $user;
 
 		$allowed_restricted_fields = [
@@ -88,6 +88,8 @@ class User extends Model {
 
 	/**
 	 * Setup the global data for the model to have proper context when resolving
+	 *
+	 * @return void
 	 */
 	public function setup() {
 
@@ -97,7 +99,7 @@ class User extends Model {
 		$this->global_post       = $post;
 		$this->global_authordata = $authordata;
 
-		if ( $this->data ) {
+		if ( ! empty( $this->data ) ) {
 
 			// Reset postdata
 			$wp_query->reset_postdata();
@@ -119,6 +121,8 @@ class User extends Model {
 	/**
 	 * Reset global state after the model fields
 	 * have been generated
+	 *
+	 * @return void
 	 */
 	public function tear_down() {
 		$GLOBALS['authordata'] = $this->global_authordata;
@@ -161,7 +165,7 @@ class User extends Model {
 		if ( empty( $this->fields ) ) {
 			$this->fields = [
 				'id'                       => function() {
-					return ( ! empty( $this->data->ID ) ) ? Relay::toGlobalId( 'user', $this->data->ID ) : null;
+					return ( ! empty( $this->data->ID ) ) ? Relay::toGlobalId( 'user', (string) $this->data->ID ) : null;
 				},
 				'capabilities'             => function() {
 					if ( ! empty( $this->data->allcaps ) ) {
@@ -212,7 +216,7 @@ class User extends Model {
 					return ! empty( $this->data->display_name ) ? $this->data->display_name : null;
 				},
 				'registeredDate'           => function() {
-					return ! empty( $this->data->user_registered ) ? date( 'c', strtotime( $this->data->user_registered ) ) : null;
+					return ! empty( $this->data->user_registered ) ? date( 'c', (int) strtotime( $this->data->user_registered ) ) : null;
 				},
 				'nickname'                 => function() {
 					return ! empty( $this->data->nickname ) ? $this->data->nickname : null;

@@ -8,9 +8,17 @@ use WPGraphQL\AppContext;
 use WPGraphQL\Data\CommentMutation;
 use WPGraphQL\Data\DataSource;
 
+/**
+ * Class CommentCreate
+ *
+ * @package WPGraphQL\Mutation
+ */
 class CommentCreate {
+
 	/**
 	 * Registers the CommentCreate mutation.
+	 *
+	 * @return void
 	 */
 	public static function register_mutation() {
 		register_graphql_mutation(
@@ -92,11 +100,7 @@ class CommentCreate {
 				'type'        => 'Comment',
 				'description' => __( 'The comment that was created', 'wp-graphql' ),
 				'resolve'     => function( $payload, $args, AppContext $context, ResolveInfo $info ) {
-					if ( ! isset( $payload['id'] ) || ! absint( $payload['id'] ) ) {
-						return null;
-					}
-
-					return DataSource::resolve_comment( absint( $payload['id'] ), $context );
+					return isset( $payload['id'] ) && absint( $payload['id'] ) ? $context->get_loader( 'comment' )->load_deferred() : null;
 				},
 			],
 			/**
@@ -137,7 +141,10 @@ class CommentCreate {
 			/**
 			 * Stop if post not open to comments
 			 */
-			if ( empty( $input['commentOn'] ) || get_post( $input['commentOn'] )->post_status === 'closed' ) {
+
+			$commented_on_post = ! empty( $input['commentOn'] ) ? get_post( absint( $input['commentOn'] ) ) : null;
+
+			if ( empty( $input['commentOn'] ) || ! isset( $commented_on_post->comment_status ) || $commented_on_post->comment_status === 'closed' ) {
 				throw new UserError( __( 'Sorry, this post is closed to comments at the moment', 'wp-graphql' ) );
 			}
 

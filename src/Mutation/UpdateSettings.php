@@ -14,6 +14,8 @@ class UpdateSettings {
 
 	/**
 	 * Registers the CommentCreate mutation.
+	 *
+	 * @return void
 	 */
 	public static function register_mutation() {
 		register_graphql_mutation(
@@ -50,12 +52,12 @@ class UpdateSettings {
 				 * Sanitize the field name to be camelcase
 				 */
 				if ( ! empty( $setting['show_in_rest']['name'] ) ) {
-					$individual_setting_key = lcfirst( $setting['group'] . 'Settings' . str_replace( '_', '', ucwords( $setting['show_in_rest']['name'], '_' ) ) );
+					$individual_setting_key = lcfirst( $setting['group'] . 'Settings' . str_replace( '_', '', ucwords( (string) $setting['show_in_rest']['name'], '_' ) ) );
 				} else {
-					$individual_setting_key = lcfirst( $setting['group'] . 'Settings' . str_replace( '_', '', ucwords( $key, '_' ) ) );
+					$individual_setting_key = lcfirst( $setting['group'] . 'Settings' . str_replace( '_', '', ucwords( (string) $key, '_' ) ) );
 				}
 
-				$individual_setting_key = lcfirst( preg_replace( '[^a-zA-Z0-9 -]', ' ', $individual_setting_key ) );
+				$individual_setting_key = lcfirst( (string) preg_replace( '[^a-zA-Z0-9 -]', ' ', $individual_setting_key ) );
 				$individual_setting_key = lcfirst( str_replace( '_', ' ', ucwords( $individual_setting_key, '_' ) ) );
 				$individual_setting_key = lcfirst( str_replace( '-', ' ', ucwords( $individual_setting_key, '_' ) ) );
 				$individual_setting_key = lcfirst( str_replace( ' ', '', ucwords( $individual_setting_key, ' ' ) ) );
@@ -91,7 +93,7 @@ class UpdateSettings {
 		if ( ! empty( $allowed_setting_groups ) && is_array( $allowed_setting_groups ) ) {
 			foreach ( $allowed_setting_groups as $group => $setting_type ) {
 
-				$setting_type = lcfirst( preg_replace( '[^a-zA-Z0-9 -]', ' ', $group ) );
+				$setting_type = lcfirst( (string) preg_replace( '[^a-zA-Z0-9 -]', ' ', (string) $group ) );
 				$setting_type = lcfirst( str_replace( '_', ' ', ucwords( $setting_type, '_' ) ) );
 				$setting_type = lcfirst( str_replace( '-', ' ', ucwords( $setting_type, '_' ) ) );
 				$setting_type = lcfirst( str_replace( ' ', '', ucwords( $setting_type, ' ' ) ) );

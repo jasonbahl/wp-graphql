@@ -48,7 +48,7 @@ class AppContext {
 	/**
 	 * Stores everything from the $_REQUEST global
 	 *
-	 * @var \mixed $request
+	 * @var mixed $request
 	 */
 	public $request;
 

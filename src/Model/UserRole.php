@@ -8,9 +8,9 @@ use GraphQLRelay\Relay;
  * Class UserRole - Models data for user roles
  *
  * @property string $id
- * @property string name
+ * @property string $name
  * @property array  $capabilities
- * @property string displayName
+ * @property string $displayName
  *
  * @package WPGraphQL\Model
  */

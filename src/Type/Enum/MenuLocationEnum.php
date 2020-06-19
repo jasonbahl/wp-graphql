@@ -4,7 +4,18 @@ namespace WPGraphQL\Type\Enum;
 use WPGraphQL\Data\DataSource;
 use WPGraphQL\Type\WPEnumType;
 
+/**
+ * Class MenuLocationEnum
+ *
+ * @package WPGraphQL\Type\Enum
+ */
 class MenuLocationEnum {
+
+	/**
+	 * Register the MenuLocationEnum Type
+	 *
+	 * @return void
+	 */
 	public static function register_type() {
 		$values = [];
 

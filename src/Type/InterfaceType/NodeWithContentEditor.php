@@ -3,11 +3,21 @@ namespace WPGraphQL\Type\InterfaceType;
 
 use WPGraphQL\Registry\TypeRegistry;
 
+/**
+ * Class NodeWithContentEditor
+ *
+ * @package WPGraphQL\Type\InterfaceType
+ */
 class NodeWithContentEditor {
+
 	/**
+	 * Register the NodeWithContentEditor Interface Type
+	 *
 	 * @param TypeRegistry $type_registry Instance of the Type Registry
+	 *
+	 * @return void
 	 */
-	public static function register_type( $type_registry ) {
+	public static function register_type( TypeRegistry $type_registry ) {
 		register_graphql_interface_type(
 			'NodeWithContentEditor',
 			[

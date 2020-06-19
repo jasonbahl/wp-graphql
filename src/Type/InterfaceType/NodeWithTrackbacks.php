@@ -3,7 +3,20 @@ namespace WPGraphQL\Type\InterfaceType;
 
 use WPGraphQL\Registry\TypeRegistry;
 
+/**
+ * Class NodeWithTrackbacks
+ *
+ * @package WPGraphQL\Type\InterfaceType
+ */
 class NodeWithTrackbacks {
+
+	/**
+	 * Register the NodeWithTrackbacks Interface Type
+	 *
+	 * @param TypeRegistry $type_registry The WPGraphQL Type Registry
+	 *
+	 * @return void
+	 */
 	public static function register_type( TypeRegistry $type_registry ) {
 		register_graphql_interface_type(
 			'NodeWithTrackbacks',

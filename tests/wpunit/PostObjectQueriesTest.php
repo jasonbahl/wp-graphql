@@ -1565,6 +1565,8 @@ class PostObjectQueriesTest extends \Codeception\TestCase\WPTestCase {
 
 		$actual = do_graphql_request( $graphql_query );
 
+		codecept_debug( $actual );
+
 		$expected = [
 			'data' => [
 				'post' => [
@@ -1583,11 +1585,11 @@ class PostObjectQueriesTest extends \Codeception\TestCase\WPTestCase {
 
 		if ( true === $restricted ) {
 			$expected['data']['post']['content'] = null;
-			$expected['data']['post']['author'] = null;
+			$expected['data']['post']['author']['node'] = null;
 		}
 
 		if ( 0 === $author ) {
-			$expected['data']['post']['author'] = null;
+			$expected['data']['post']['author']['node'] = null;
 		}
 
 		/**
@@ -1689,7 +1691,7 @@ class PostObjectQueriesTest extends \Codeception\TestCase\WPTestCase {
 		$this->assertEquals( $post_id, $actual['data']['posts']['nodes'][0]['postId'] );
 
 		// Verify that the 'author' field is set to null, since the user ID is invalid.
-		$this->assertEquals( null, $actual['data']['posts']['nodes'][0]['author'] );
+		$this->assertEquals( null, $actual['data']['posts']['nodes'][0]['author']['node'] );
 
 		wp_delete_post( $post_id, true );
 

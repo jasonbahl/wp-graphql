@@ -1,7 +1,18 @@
 <?php
 namespace WPGraphQL\Type\Enum;
 
+/**
+ * Class CommentsConnectionOrderbyEnum
+ *
+ * @package WPGraphQL\Type\Enum
+ */
 class CommentsConnectionOrderbyEnum {
+
+	/**
+	 * Register the CommentsConnectionOrderbyEnum Type
+	 *
+	 * @return void
+	 */
 	public static function register_type() {
 		register_graphql_enum_type(
 			'CommentsConnectionOrderbyEnum',

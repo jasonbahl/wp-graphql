@@ -14,6 +14,8 @@ class User {
 
 	/**
 	 * Registers the User type
+	 *
+	 * @return void
 	 */
 	public static function register_type() {
 		register_graphql_object_type(
@@ -123,7 +125,7 @@ class User {
 							],
 
 						],
-						'resolve'     => function( $user, $args, $context, $info ) {
+						'resolve'     => function( \WPGraphQL\Model\User $user, $args, $context, $info ) {
 
 							$avatar_args = [];
 							if ( is_numeric( $args['size'] ) ) {
@@ -143,7 +145,7 @@ class User {
 
 							$avatar = DataSource::resolve_avatar( $user->userId, $avatar_args );
 
-							return ( ! empty( $avatar ) && true === $avatar->foundAvatar ) ? $avatar : null;
+							return ( isset( $avatar->foundAvatar ) && true === $avatar->foundAvatar ) ? $avatar : null;
 						},
 					],
 				],

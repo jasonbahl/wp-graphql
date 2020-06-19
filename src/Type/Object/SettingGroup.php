@@ -5,12 +5,21 @@ namespace WPGraphQL\Type\Object;
 use GraphQL\Error\UserError;
 use WPGraphQL\Data\DataSource;
 
+/**
+ * Class SettingGroup
+ *
+ * @package WPGraphQL\Type\Object
+ */
 class SettingGroup {
 
 	/**
 	 * @param string $group_name
+	 * @param string $group
+	 *
+	 * @return void
 	 */
 	public static function register_settings_group( $group_name, $group ) {
+
 		register_graphql_object_type(
 			ucfirst( $group_name ) . 'Settings',
 			[
@@ -23,7 +32,8 @@ class SettingGroup {
 	/**
 	 * Given the name of a registered settings group, retrieve GraphQL fields for the group
 	 *
-	 * @param string $group_name Name  of the settings group to retrieve fields for
+	 * @param string $group_name Name of the settings group to retrieve fields for
+	 * @param string $group      Name of the settings group to retrieve fields for
 	 *
 	 * @return array
 	 */
@@ -62,7 +72,7 @@ class SettingGroup {
 					$fields[ $field_key ] = [
 						'type'        => $setting_field['type'],
 						'description' => $setting_field['description'],
-						'resolve'     => function( $root, array $args, $context, $info ) use ( $setting_field, $field_key, $key ) {
+						'resolve'     => function( $root, array $args, $context, $info ) use ( $setting_field ) {
 
 							/**
 							 * Check to see if the user querying the email field has the 'manage_options' capability
@@ -79,22 +89,22 @@ class SettingGroup {
 							switch ( $setting_field['type'] ) {
 								case 'integer':
 								case 'int':
-									return absint( $option );
+									$option = absint( $option );
 									break;
 								case 'string':
-									return (string) $option;
+									$option = (string) $option;
 									break;
 								case 'boolean':
 								case 'bool':
-									return (bool) $option;
+									$option = (bool) $option;
 									break;
 								case 'number':
 								case 'float':
-									return (float) $option;
+									$option = (float) $option;
 									break;
 							}
 
-							return ! empty( $option ) ? $option : null;
+							return $option;
 						},
 					];
 

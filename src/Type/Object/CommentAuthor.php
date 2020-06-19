@@ -2,7 +2,18 @@
 
 namespace WPGraphQL\Type\Object;
 
+/**
+ * Class CommentAuthor
+ *
+ * @package WPGraphQL\Type\Object
+ */
 class CommentAuthor {
+
+	/**
+	 * Register the CommentAuthor Type
+	 *
+	 * @return void
+	 */
 	public static function register_type() {
 		register_graphql_object_type(
 			'CommentAuthor',

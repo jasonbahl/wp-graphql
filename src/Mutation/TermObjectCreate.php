@@ -4,16 +4,27 @@ namespace WPGraphQL\Mutation;
 use GraphQL\Error\UserError;
 use GraphQL\Type\Definition\ResolveInfo;
 use WPGraphQL\AppContext;
-use WPGraphQL\Data\DataSource;
 use WPGraphQL\Data\TermObjectMutation;
 
+/**
+ * Class TermObjectCreate
+ *
+ * @package WPGraphQL\Mutation
+ */
 class TermObjectCreate {
 	/**
 	 * Registers the TermObjectCreate mutation.
 	 *
 	 * @param \WP_Taxonomy $taxonomy    The taxonomy type of the mutation.
+	 *
+	 * @return void
 	 */
 	public static function register_mutation( \WP_Taxonomy $taxonomy ) {
+
+		if ( ! isset( $taxonomy->graphql_single_name ) ) {
+			return;
+		}
+
 		$mutation_name = 'create' . ucwords( $taxonomy->graphql_single_name );
 
 		register_graphql_mutation(
@@ -27,7 +38,7 @@ class TermObjectCreate {
 								'non_null' => 'String',
 							],
 							// Translators: The placeholder is the name of the taxonomy for the object being mutated
-							'description' => sprintf( __( 'The name of the %1$s object to mutate', 'wp-graphql' ), $taxonomy->name ),
+							'description' => sprintf( __( 'The name of the %1$s node to mutate', 'wp-graphql' ), $taxonomy->graphql_single_name ),
 						],
 					]
 				),
@@ -84,12 +95,17 @@ class TermObjectCreate {
 	 * @return array
 	 */
 	public static function get_output_fields( \WP_Taxonomy $taxonomy ) {
+
+		if ( ! isset( $taxonomy->graphql_single_name ) ) {
+			return [];
+		}
+
 		return [
 			$taxonomy->graphql_single_name => [
 				'type'        => $taxonomy->graphql_single_name,
 				// translators: Placeholder is the name of the taxonomy
 				'description' => sprintf( __( 'The created %s', 'wp-graphql' ), $taxonomy->name ),
-				'resolve'     => function ( $payload, $args, AppContext $context, ResolveInfo $info ) use ( $taxonomy ) {
+				'resolve'     => function ( $payload, $args, AppContext $context, ResolveInfo $info ) {
 					$id = isset( $payload['termId'] ) ? absint( $payload['termId'] ) : null;
 					return $context->get_loader( 'term' )->load_deferred( $id );
 
@@ -112,9 +128,9 @@ class TermObjectCreate {
 			/**
 			 * Ensure the user can edit_terms
 			 */
-			if ( ! current_user_can( $taxonomy->cap->edit_terms ) ) {
+			if ( ! isset( $taxonomy->cap->edit_terms ) || ! current_user_can( $taxonomy->cap->edit_terms ) ) {
 				// translators: the $taxonomy->graphql_plural_name placeholder is the name of the object being mutated
-				throw new UserError( sprintf( __( 'Sorry, you are not allowed to create %1$s', 'wp-graphql' ), $taxonomy->graphql_plural_name ) );
+				throw new UserError( sprintf( __( 'Sorry, you are not allowed to create %1$s', 'wp-graphql' ), isset( $taxonomy->graphql_plural_name ) ? $taxonomy->graphql_plural_name : $taxonomy->name ) );
 			}
 
 			/**
@@ -133,7 +149,11 @@ class TermObjectCreate {
 			/**
 			 * Insert the term
 			 */
-			$term = wp_insert_term( wp_slash( $args['name'] ), $taxonomy->name, wp_slash( (array) $args ) );
+			$name = wp_slash( $args['name'] );
+			if ( ! is_string( $name ) ) {
+				throw new UserError( sprintf( __( 'The name %s could not be used to create the node', 'wp-graphql' ), wp_json_encode( $name ) ) );
+			}
+			$term = wp_insert_term( $name, $taxonomy->name, wp_slash( (array) $args ) );
 
 			/**
 			 * If it was an error, return the message as an exception

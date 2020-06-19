@@ -2,7 +2,18 @@
 
 namespace WPGraphQL\Type\Enum;
 
+/**
+ * Class PostObjectsConnectionDateColumnEnum
+ *
+ * @package WPGraphQL\Type\Enum
+ */
 class PostObjectsConnectionDateColumnEnum {
+
+	/**
+	 * Register the PostObjectsConnectionDateColumnEnum Type
+	 *
+	 * @return void
+	 */
 	public static function register_type() {
 		register_graphql_enum_type(
 			'PostObjectsConnectionDateColumnEnum',

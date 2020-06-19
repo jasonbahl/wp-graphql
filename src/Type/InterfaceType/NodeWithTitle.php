@@ -7,7 +7,20 @@ use WPGraphQL\Data\DataSource;
 use WPGraphQL\Model\Post;
 use WPGraphQL\Registry\TypeRegistry;
 
+/**
+ * Class NodeWithTitle
+ *
+ * @package WPGraphQL\Type\InterfaceType
+ */
 class NodeWithTitle {
+
+	/**
+	 * Register the NodeWithTitle Interface Type
+	 *
+	 * @param TypeRegistry $type_registry The WPGraphQL TypeRegistry
+	 *
+	 * @return void
+	 */
 	public static function register_type( TypeRegistry $type_registry ) {
 
 		register_graphql_interface_type(

@@ -7,7 +7,18 @@ use GraphQL\Type\Definition\ResolveInfo;
 use WPGraphQL\AppContext;
 use WPGraphQL\Model\User;
 
+/**
+ * Class SendPasswordResetEmail
+ *
+ * @package WPGraphQL\Mutation
+ */
 class SendPasswordResetEmail {
+
+	/**
+	 * Register the sendPasswordResetEmail mutation
+	 *
+	 * @return void
+	 */
 	public static function register_mutation() {
 		register_graphql_mutation(
 			'sendPasswordResetEmail',
@@ -25,9 +36,10 @@ class SendPasswordResetEmail {
 					'user' => [
 						'type'        => 'User',
 						'description' => __( 'The user that the password reset email was sent to', 'wp-graphql' ),
-						'resolve'     => function ( $payload ) {
-							$user = get_user_by( 'ID', absint( $payload['id'] ) );
-							return new User( $user );
+						'resolve'     => function ( $payload, $args, $context ) {
+
+							return ! empty( $payload['id'] ) && absint( $payload['id'] ) ? $context->get_loader( 'user' )->load_deferred( absint( $payload['id'] ) ) : null;
+
 						},
 					],
 				],
@@ -82,7 +94,8 @@ class SendPasswordResetEmail {
 	 */
 	private static function get_user_data( $username ) {
 		if ( self::is_email_address( $username ) ) {
-			return get_user_by( 'email', trim( wp_unslash( $username ) ) );
+			$username = wp_unslash( $username );
+			return is_string( $username ) ? get_user_by( 'email', trim( $username ) ) : false;
 		}
 
 		return get_user_by( 'login', trim( $username ) );
@@ -111,7 +124,7 @@ class SendPasswordResetEmail {
 	 * @return bool
 	 */
 	private static function is_email_address( $username ) {
-		return strpos( $username, '@' );
+		return (bool) strpos( $username, '@' );
 	}
 
 	/**
@@ -138,11 +151,12 @@ class SendPasswordResetEmail {
 	/**
 	 * Get the site name.
 	 *
-	 * @return string
+	 * @return mixed string|null
 	 */
 	private static function get_site_name() {
 		if ( is_multisite() ) {
-			return get_network()->site_name;
+			$network = get_network();
+			return $network->site_name ?? null;
 		}
 
 		/*

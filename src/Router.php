@@ -149,15 +149,22 @@ class Router {
 
 		// Check the server to determine if the GraphQL endpoint is being requested
 		if ( isset( $_SERVER['HTTP_HOST'] ) && isset( $_SERVER['REQUEST_URI'] ) ) {
-			$haystack = wp_unslash( $_SERVER['HTTP_HOST'] )
-						. wp_unslash( $_SERVER['REQUEST_URI'] );
+
+			$host = wp_unslash( $_SERVER['HTTP_HOST'] );
+			$host = is_string( $host ) ? $host : null;
+			$uri  = wp_unslash( $_SERVER['REQUEST_URI'] );
+			$uri  = is_string( $uri ) ? $uri : null;
+			if ( empty( $uri ) || empty( $host ) ) {
+				return false;
+			}
+			$haystack = $host . $uri;
 			$needle   = site_url( self::$route );
 
 			// Strip protocol.
 			$haystack                = preg_replace( '#^(http(s)?://)#', '', $haystack );
 			$needle                  = preg_replace( '#^(http(s)?://)#', '', $needle );
-			$len                     = strlen( $needle );
-			$is_graphql_http_request = ( substr( $haystack, 0, $len ) === $needle );
+			$len                     = is_string( $needle ) ? strlen( $needle ) : 0;
+			$is_graphql_http_request = is_string( $haystack ) ? ( substr( $haystack, 0, $len ) === $needle ) : false;
 		}
 
 		return $is_graphql_http_request;
@@ -228,6 +235,8 @@ class Router {
 	 *
 	 * @param string $key   Header key.
 	 * @param string $value Header value.
+	 *
+	 * @return void
 	 */
 	public static function send_header( $key, $value ) {
 
@@ -246,6 +255,8 @@ class Router {
 	 * Sends an HTTP status code.
 	 *
 	 * @since  0.0.5
+	 *
+	 * @return void
 	 */
 	protected static function set_status() {
 		status_header( self::$http_status_code );
@@ -328,7 +339,7 @@ class Router {
 			if ( ! empty( $headers ) && is_array( $headers ) ) {
 
 				foreach ( $headers as $key => $value ) {
-					self::send_header( $key, $value );
+					self::send_header( (string) $key, $value );
 				}
 			}
 
@@ -347,7 +358,7 @@ class Router {
 	 *
 	 * @since  0.0.5
 	 * @global string php://input Raw post data.
-	 * @return string Raw request data.
+	 * @return string|false Raw request data.
 	 */
 	public static function get_raw_data() {
 
@@ -449,8 +460,10 @@ class Router {
 	 * @param array    $graphql_results The results of the GraphQL execution.
 	 * @param string   $query           The GraphQL query.
 	 * @param string   $operation_name  The operation name of the GraphQL Request.
-	 * @param array    $variables       The variables applied to the GraphQL Request.
+	 * @param array|null    $variables       The variables applied to the GraphQL Request.
 	 * @param \WP_User $user            The current user object.
+	 *
+	 * @return void
 	 */
 	protected static function prepare_headers( $response, $graphql_results, $query, $operation_name, $variables, $user = null ) {
 

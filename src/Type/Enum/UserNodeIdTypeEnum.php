@@ -1,6 +1,11 @@
 <?php
 namespace WPGraphQL\Type\Enum;
 
+/**
+ * Class UserNodeIdTypeEnum
+ *
+ * @package WPGraphQL\Type\Enum
+ */
 class UserNodeIdTypeEnum {
 
 	/**

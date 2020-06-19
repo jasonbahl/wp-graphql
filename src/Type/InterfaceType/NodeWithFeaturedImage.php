@@ -3,9 +3,19 @@ namespace WPGraphQL\Type\InterfaceType;
 
 use WPGraphQL\Registry\TypeRegistry;
 
+/**
+ * Class NodeWithFeaturedImage
+ *
+ * @package WPGraphQL\Type\InterfaceType
+ */
 class NodeWithFeaturedImage {
+
 	/**
+	 * Register the NodeWithFeaturedImage Interface Type
+	 *
 	 * @param TypeRegistry $type_registry Instance of the Type Registry
+	 *
+	 * @return void
 	 */
 	public static function register_type( $type_registry ) {
 

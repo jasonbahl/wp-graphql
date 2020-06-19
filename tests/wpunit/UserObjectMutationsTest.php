@@ -142,6 +142,8 @@ class UserObjectMutationsTest extends \Codeception\TestCase\WPTestCase {
 			'email'    => 'emailDoesNotExist@test.com',
 		] );
 
+		codecept_debug( $actual );
+
 		/**
 		 * We're asserting that this will properly return an error
 		 * because this user doesn't have permissions to create a user as a
@@ -162,6 +164,8 @@ class UserObjectMutationsTest extends \Codeception\TestCase\WPTestCase {
 			'username' => $username,
 			'email'    => $email,
 		] );
+
+		codecept_debug( $actual );
 
 		$expected = [
 			'data' => [

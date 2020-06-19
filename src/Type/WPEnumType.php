@@ -30,7 +30,11 @@ class WPEnumType extends EnumType {
 	 * @return string
 	 */
 	public static function get_safe_name( $value ) {
-		$safe_name = strtoupper( preg_replace( '#[^A-z0-9]#', '_', $value ) );
+		$value = preg_replace( '#[^A-z0-9]#', '_', $value );
+		if ( empty( $value ) ) {
+			return '';
+		}
+		$safe_name = strtoupper( $value );
 
 		// Enum names must start with a letter or underscore.
 		if ( ! preg_match( '#^[_a-zA-Z]#', $value ) ) {

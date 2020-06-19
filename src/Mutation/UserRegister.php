@@ -7,9 +7,16 @@ use GraphQL\Type\Definition\ResolveInfo;
 use WPGraphQL\AppContext;
 use WPGraphQL\Data\UserMutation;
 
+/**
+ * Class UserRegister
+ *
+ * @package WPGraphQL\Mutation
+ */
 class UserRegister {
 	/**
 	 * Registers the CommentCreate mutation.
+	 *
+	 * @return void
 	 */
 	public static function register_mutation() {
 		register_graphql_mutation(

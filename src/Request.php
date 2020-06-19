@@ -27,7 +27,7 @@ class Request {
 	/**
 	 * Request data.
 	 *
-	 * @var array
+	 * @var array|null
 	 */
 	private $data;
 
@@ -42,7 +42,7 @@ class Request {
 	 * GraphQL operation parameters for this request. Can also be an array of
 	 * OperationParams.
 	 *
-	 * @var OperationParams|OperationParams[]
+	 * @var OperationParams|array<OperationParams>
 	 */
 	private $params;
 
@@ -85,7 +85,12 @@ class Request {
 		$this->data = $data;
 
 		// Get the Schema
-		$this->schema = \WPGraphQL::get_schema();
+		$schema = \WPGraphQL::get_schema();
+		if ( null === $schema ) {
+			throw new \Exception( __( 'No Schema was defined', 'wp-graphql' ) );
+		}
+
+		$this->schema = $schema;
 
 		// Get the App Context
 		$this->app_context = \WPGraphQL::get_app_context();
@@ -399,8 +404,18 @@ class Request {
 	 */
 	public function execute() {
 
-		$helper       = new WPHelper();
-		$this->params = $helper->parseRequestParams( 'POST', $this->data, [] );
+		$helper      = new WPHelper();
+		$body_params = ! empty( $this->data ) && is_array( $this->data ) ? $this->data : [];
+		$params      = $helper->parseRequestParams( 'POST', $body_params, [] );
+
+		if ( ! $params instanceof OperationParams ) {
+			throw new \Exception( __( 'The operation params are not formatted properly', 'wp-graphql' ) );
+		}
+
+		$this->params = $params;
+		$query        = isset( $this->params->query ) ? $this->params->query : '';
+		$variables    = isset( $this->params->variables ) ? $this->params->variables : null;
+		$operation    = isset( $this->params->operation ) ? $this->params->operation : null;
 
 		/**
 		 * Initialize the GraphQL Request
@@ -409,11 +424,11 @@ class Request {
 
 		$result = \GraphQL\GraphQL::executeQuery(
 			$this->schema,
-			$this->params->query,
+			$query,
 			null,
 			$this->app_context,
-			$this->params->variables,
-			$this->params->operation
+			$variables,
+			$operation
 		);
 
 		/**
@@ -461,13 +476,13 @@ class Request {
 		$server   = $this->get_server();
 		$response = $server->executeRequest( $this->params );
 
-		return $this->after_execute( $response, $this->params );
+		return $this->after_execute( $response );
 	}
 
 	/**
 	 * Get the operation params for the request.
 	 *
-	 * @return OperationParams
+	 * @return array<OperationParams>|OperationParams
 	 */
 	public function get_params() {
 		return $this->params;

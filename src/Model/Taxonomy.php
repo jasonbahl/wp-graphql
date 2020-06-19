@@ -66,7 +66,7 @@ class Taxonomy extends Model {
 			'isRestricted',
 		];
 
-		parent::__construct( $this->data->cap->edit_terms, $allowed_restricted_fields );
+		parent::__construct( isset( $this->data->cap->edit_terms ) ? $this->data->cap->edit_terms : 'edit_terms', $allowed_restricted_fields );
 
 	}
 
@@ -77,7 +77,7 @@ class Taxonomy extends Model {
 	 */
 	protected function is_private() {
 
-		if ( false === $this->data->public && ! current_user_can( $this->data->cap->edit_terms ) ) {
+		if ( false === $this->data->public && ( ! isset( $this->data->cap->edit_terms ) || ! current_user_can( $this->data->cap->edit_terms ) ) ) {
 			return true;
 		}
 
@@ -144,7 +144,7 @@ class Taxonomy extends Model {
 					return ! empty( $this->data->rest_controller_class ) ? $this->data->rest_controller_class : null;
 				},
 				'showInGraphql'       => function() {
-					return ( true === $this->data->show_in_graphql ) ? true : false;
+					return isset( $this->data->show_in_graphql ) && true === $this->data->show_in_graphql ? true : false;
 				},
 				'graphqlSingleName'   => function() {
 					return ! empty( $this->data->graphql_single_name ) ? $this->data->graphql_single_name : null;

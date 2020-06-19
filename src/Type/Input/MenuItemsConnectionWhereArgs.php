@@ -2,7 +2,18 @@
 
 namespace WPGraphQL\Type\Input;
 
+/**
+ * Class MenuItemsConnectionWhereArgs
+ *
+ * @package WPGraphQL\Type\Input
+ */
 class MenuItemsConnectionWhereArgs {
+
+	/**
+	 * Register the MenuItmesWhereArgs Type
+	 *
+	 * @return void
+	 */
 	public static function register_type() {
 		register_graphql_input_type(
 			'MenuItemsWhereArgs',

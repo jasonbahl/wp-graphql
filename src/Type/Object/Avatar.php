@@ -2,7 +2,18 @@
 
 namespace WPGraphQL\Type\Object;
 
+/**
+ * Class Avatar
+ *
+ * @package WPGraphQL\Type\Object
+ */
 class Avatar {
+
+	/**
+	 * Register the Avatar Type
+	 *
+	 * @return void
+	 */
 	public static function register_type() {
 		register_graphql_object_type(
 			'Avatar',

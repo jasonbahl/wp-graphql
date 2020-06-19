@@ -18,6 +18,8 @@ class RootQuery {
 
 	/**
 	 * Register the RootQuery type
+	 *
+	 * @return void
 	 */
 	public static function register_type() {
 		register_graphql_object_type(
@@ -93,7 +95,8 @@ class RootQuery {
 									break;
 							}
 
-							if ( isset( $args['asPreview'] ) && true === $args['asPreview'] ) {
+							if ( isset( $args['asPreview'] ) && true === $args['asPreview'] && ! empty( $post_id ) ) {
+
 								$revisions = wp_get_post_revisions( $post_id, [
 									'posts_per_page' => 1,
 									'fields'         => 'ids',
@@ -415,12 +418,12 @@ class RootQuery {
 					'viewer'      => [
 						'type'        => 'User',
 						'description' => __( 'Returns the current user', 'wp-graphql' ),
-						'resolve'     => function( $source, array $args, $context, $info ) {
+						'resolve'     => function( $source, array $args, AppContext $context, $info ) {
 							if ( ! isset( $context->viewer->ID ) || empty( $context->viewer->ID ) ) {
 								throw new \Exception( __( 'You must be logged in to access viewer fields', 'wp-graphql' ) );
 							}
 
-							return ( false !== $context->viewer->ID ) ? DataSource::resolve_user( $context->viewer->ID, $context ) : null;
+							return ! empty( $context->viewer->ID ) ? $context->get_loader( 'user' )->load_deferred( absint( $context->viewer->ID ) ) : null;
 						},
 					],
 				],
@@ -430,6 +433,8 @@ class RootQuery {
 
 	/**
 	 * Register RootQuery fields for Post Objects of supported post types
+	 *
+	 * @return void
 	 */
 	public static function register_post_object_fields() {
 
@@ -437,6 +442,10 @@ class RootQuery {
 		if ( ! empty( $allowed_post_types ) && is_array( $allowed_post_types ) ) {
 			foreach ( $allowed_post_types as $post_type ) {
 				$post_type_object = get_post_type_object( $post_type );
+
+				if ( ! isset( $post_type_object->graphql_single_name ) ) {
+					return;
+				}
 
 				register_graphql_field(
 					'RootQuery',
@@ -486,7 +495,7 @@ class RootQuery {
 									break;
 							}
 
-							if ( isset( $args['asPreview'] ) && true === $args['asPreview'] ) {
+							if ( isset( $args['asPreview'] ) && true === $args['asPreview'] && ! empty( $post_id ) ) {
 								$revisions = wp_get_post_revisions( $post_id, [
 									'posts_per_page' => 1,
 									'fields'         => 'ids',
@@ -551,12 +560,13 @@ class RootQuery {
 								$post_object = get_page_by_path( $slug, 'OBJECT', $post_type_object->name );
 								$post_id     = isset( $post_object->ID ) ? absint( $post_object->ID ) : null;
 							}
-							$post = DataSource::resolve_post_object( $post_id, $context );
-							if ( ! get_post( $post_id ) || get_post( $post_id )->post_type !== $post_type_object->name ) {
+
+							if ( empty( $post_id ) ) {
 								return null;
 							}
 
-							return $post;
+							return $context->get_loader( 'post' )->load_deferred( $post_id );
+
 						},
 					]
 				);
@@ -566,6 +576,8 @@ class RootQuery {
 
 	/**
 	 * Register RootQuery fields for Term Objects of supported taxonomies
+	 *
+	 * @return void
 	 */
 	public static function register_term_object_fields() {
 
@@ -573,6 +585,10 @@ class RootQuery {
 		if ( ! empty( $allowed_taxonomies ) && is_array( $allowed_taxonomies ) ) {
 			foreach ( $allowed_taxonomies as $taxonomy ) {
 				$taxonomy_object = get_taxonomy( $taxonomy );
+
+				if ( ! isset( $taxonomy_object->graphql_single_name ) ) {
+					return;
+				}
 
 				register_graphql_field(
 					'RootQuery',

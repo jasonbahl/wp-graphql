@@ -1148,6 +1148,8 @@ class MediaItemMutationsTest extends \Codeception\TestCase\WPTestCase
 		wp_set_current_user( $this->admin );
 		$actual = $this->deleteMediaItemMutation();
 
+		codecept_debug( $actual );
+
 		/**
 		 * Define the expected output.
 		 */

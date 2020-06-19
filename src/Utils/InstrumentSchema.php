@@ -37,12 +37,13 @@ class InstrumentSchema {
 
 		if ( ! empty( $types ) && is_array( $types ) ) {
 			foreach ( $types as $type_name => $type_object ) {
-				if ( $type_object instanceof ObjectType || $type_object instanceof WPObjectType ) {
+
+				if ( true === $type_object instanceof ObjectType ) {
 					$fields                            = $type_object->getFields();
-					$new_fields                        = self::wrap_fields( $fields, $type_name );
+					$new_fields                        = self::wrap_fields( $fields, (string) $type_name );
 					$new_type_object                   = $type_object;
-					$new_type_object->name             = ucfirst( esc_html( $type_object->name ) );
-					$new_type_object->description      = esc_html( $type_object->description );
+					$new_type_object->name             = ! empty( $type_object->name ) ? ucfirst( esc_html( $type_object->name ) ) : (string) $type_name;
+					$new_type_object->description      = ! empty( $type_object->description ) ? esc_html( $type_object->description ) : '';
 					$new_type_object->config['fields'] = $new_fields;
 					$new_types[ $type_name ]           = $new_type_object;
 				}
@@ -108,11 +109,6 @@ class InstrumentSchema {
 					 * @param AppContext  $context The AppContext passed down the ResolveTree
 					 * @param ResolveInfo $info    The ResolveInfo passed down the ResolveTree
 					 *
-					 * @use   function|null $field_resolve_function
-					 * @use   string $type_name
-					 * @use   string $field_key
-					 * @use   object $field
-					 *
 					 * @return mixed
 					 * @throws \Exception
 					 */
@@ -167,8 +163,8 @@ class InstrumentSchema {
 						$result = apply_filters( 'graphql_pre_resolve_field', $nil, $source, $args, $context, $info, $type_name, $field_key, $field, $field_resolver );
 
 						/**
-						* Check if the field preresolved
-						*/
+						 * Check if the field preresolved
+						 */
 						if ( $nil === $result ) {
 							/**
 							 * If the current field doesn't have a resolve function, use the defaultFieldResolver,
@@ -182,8 +178,8 @@ class InstrumentSchema {
 						}
 
 						/**
-
-						/**
+						 *
+						 * /**
 						 * Fire an action before the field resolves
 						 *
 						 * @param mixed           $result         The result of the field resolution
@@ -231,13 +227,14 @@ class InstrumentSchema {
 	 *
 	 * This takes into account auth params defined in the Schema
 	 *
-	 * @param mixed           $source    The source passed down the Resolve Tree
-	 * @param array           $args      The args for the field
-	 * @param AppContext      $context   The AppContext passed down the ResolveTree
-	 * @param ResolveInfo     $info      The ResolveInfo passed down the ResolveTree
-	 * @param string          $type_name The name of the type the fields belong to
-	 * @param string          $field_key The name of the field
-	 * @param FieldDefinition $field     The Field Definition for the resolving field
+	 * @param mixed           $source         The source passed down the Resolve Tree
+	 * @param array           $args           The args for the field
+	 * @param AppContext      $context        The AppContext passed down the ResolveTree
+	 * @param ResolveInfo     $info           The ResolveInfo passed down the ResolveTree
+	 * @param callable        $field_resolver The callable field resolver
+	 * @param string          $type_name      The name of the type the fields belong to
+	 * @param string          $field_key      The name of the field
+	 * @param FieldDefinition $field          The Field Definition for the resolving field
 	 *
 	 * @return bool|mixed
 	 */

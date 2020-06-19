@@ -16,7 +16,7 @@ use GraphQL\Type\SchemaConfig;
 class WPSchema extends Schema {
 
 	/**
-	 * @var SchemaConfig
+	 * @var array|null
 	 */
 	public $config;
 

@@ -33,14 +33,14 @@ class MenuItemObjectUnion {
 					if ( $object instanceof Post && ! empty( $object->post_type ) ) {
 						$post_type_object = get_post_type_object( $object->post_type );
 
-						return $type_registry->get_type( $post_type_object->graphql_single_name );
+						return isset( $post_type_object->graphql_single_name ) ? $type_registry->get_type( $post_type_object->graphql_single_name ) : null;
 					}
 
 					// Taxonomy term
 					if ( $object instanceof Term && ! empty( $object->taxonomyName ) ) {
 						$tax_object = get_taxonomy( $object->taxonomyName );
 
-						return $type_registry->get_type( $tax_object->graphql_single_name );
+						return isset( $tax_object->graphql_single_name ) ? $type_registry->get_type( $tax_object->graphql_single_name ) : null;
 					}
 
 					return $object;
@@ -76,7 +76,7 @@ class MenuItemObjectUnion {
 
 		// Add taxonomies that are allowed in WPGraphQL.
 		foreach ( get_taxonomies( $args ) as $type ) {
-			$tax_object = get_taxonomy( $type );
+			$tax_object = is_string( $type ) ? get_taxonomy( $type ) : $type;
 			if ( isset( $tax_object->graphql_single_name ) ) {
 				$possible_types[] = $tax_object->graphql_single_name;
 			}

@@ -2,7 +2,18 @@
 
 namespace WPGraphQL\Type\Enum;
 
+/**
+ * Class OrderEnum
+ *
+ * @package WPGraphQL\Type\Enum
+ */
 class OrderEnum {
+
+	/**
+	 * Register the OrderEnum Type
+	 *
+	 * @return void
+	 */
 	public static function register_type() {
 		register_graphql_enum_type(
 			'OrderEnum',

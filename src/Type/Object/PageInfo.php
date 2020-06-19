@@ -2,7 +2,18 @@
 
 namespace WPGraphQL\Type\Object;
 
+/**
+ * Class PageInfo
+ *
+ * @package WPGraphQL\Type\Object
+ */
 class PageInfo {
+
+	/**
+	 * Register the WPPageInfo Type
+	 *
+	 * @return void
+	 */
 	public static function register_type() {
 
 		/**

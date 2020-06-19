@@ -2,16 +2,23 @@
 
 namespace WPGraphQL\Mutation;
 
-use GraphQL\Deferred;
 use GraphQL\Error\UserError;
 use GraphQL\Type\Definition\ResolveInfo;
 use WPGraphQL\AppContext;
 use WPGraphQL\Data\DataSource;
 use WPGraphQL\Data\MediaItemMutation;
 
+/**
+ * Class MediaItemCreate
+ *
+ * @package WPGraphQL\Mutation
+ */
 class MediaItemCreate {
+
 	/**
 	 * Registers the MediaItemCreate mutation.
+	 *
+	 * @return void
 	 */
 	public static function register_mutation() {
 		register_graphql_mutation(
@@ -99,11 +106,8 @@ class MediaItemCreate {
 		return [
 			'mediaItem' => [
 				'type'    => 'MediaItem',
-				'resolve' => function ( $payload, $args, AppContext $context ) {
-					if ( empty( $payload['postObjectId'] ) || ! absint( $payload['postObjectId'] ) ) {
-						return null;
-					}
-					return DataSource::resolve_post_object( $payload['postObjectId'], $context );
+				'resolve' => function( $payload, $args, AppContext $context ) {
+					return ! empty( $payload['postObjectId'] ) && ! absint( $payload['postObjectId'] ) ? $context->get_loader( 'post' )->load_deferred( absint( $payload['postObjectId'] ) ) : null;
 				},
 			],
 		];
@@ -115,7 +119,7 @@ class MediaItemCreate {
 	 * @return callable
 	 */
 	public static function mutate_and_get_payload() {
-		return function ( $input, AppContext $context, ResolveInfo $info ) {
+		return function( $input, AppContext $context, ResolveInfo $info ) {
 			/**
 			 * Stop now if a user isn't allowed to upload a mediaItem
 			 */
@@ -140,7 +144,11 @@ class MediaItemCreate {
 			 * If the mediaItem file is from a local server, use wp_upload_bits before saving it to the uploads folder
 			 */
 			if ( 'file' === parse_url( $input['filePath'], PHP_URL_SCHEME ) ) {
-				$uploaded_file     = wp_upload_bits( $file_name, null, file_get_contents( $input['filePath'] ) );
+				$file_contents = file_get_contents( $input['filePath'] );
+				if ( empty( $file_contents ) ) {
+					throw new UserError( __( 'The contents of the file could not be read', 'wp-graphql' ) );
+				}
+				$uploaded_file     = wp_upload_bits( $file_name, null, $file_contents );
 				$uploaded_file_url = ( empty( $uploaded_file['error'] ) ? $uploaded_file['url'] : null );
 			}
 
@@ -193,21 +201,32 @@ class MediaItemCreate {
 			/**
 			 * Insert the mediaItem object and get the ID
 			 */
-			$media_item_args = MediaItemMutation::prepare_media_item( $input, get_post_type_object( 'attachment' ), 'createMediaItem', $file );
+			$post_type_object = get_post_type_object( 'attachment' );
+			if ( empty( $post_type_object ) ) {
+				throw new \Exception( __( 'The attachment post type is not registered', 'wp-graphql' ) );
+			}
+
+			$media_item_args  = ! empty( $post_type_object ) ? MediaItemMutation::prepare_media_item( $input, $post_type_object, 'createMediaItem', $file ) : [];
 
 			/**
-			 * Get the post parent and if it's not set, set it to false
+			 * Get the post parent and if it's not set, set it to 0
 			 */
-			$attachment_parent_id = ( ! empty( $media_item_args['post_parent'] ) ? absint( $media_item_args['post_parent'] ) : false );
+			$attachment_parent_id = ( ! empty( $media_item_args['post_parent'] ) ? absint( $media_item_args['post_parent'] ) : 0 );
 
 			/**
 			 * Stop now if a user isn't allowed to edit the parent post
 			 */
-			$parent = get_post( $attachment_parent_id );
+			$parent = ! empty( $attachment_parent_id ) ? get_post( absint( $attachment_parent_id ) ) : null;
 
-			if ( null !== get_post( $attachment_parent_id ) ) {
+			if ( ! empty( $parent ) ) {
 				$post_parent_type = get_post_type_object( $parent->post_type );
-				if ( 'attachment' !== $post_parent_type && ! current_user_can( $post_parent_type->cap->edit_post, $attachment_parent_id ) ) {
+				if (
+					'attachment' !== $post_parent_type &&
+					isset( $post_parent_type->cap->edit_post ) &&
+					(
+						! isset( $post_parent_type->cap->edit_post ) || ! current_user_can( $post_parent_type->cap->edit_post, $attachment_parent_id )
+					)
+				) {
 					throw new UserError( __( 'Sorry, you are not allowed to upload mediaItems assigned to this parent node', 'wp-graphql' ) );
 				}
 			}
@@ -216,7 +235,13 @@ class MediaItemCreate {
 			 * If the mediaItem being created is being assigned to another user that's not the current user, make sure
 			 * the current user has permission to edit others mediaItems
 			 */
-			if ( ! empty( $input['authorId'] ) && get_current_user_id() !== $input['authorId'] && ! current_user_can( get_post_type_object( 'attachment' )->cap->edit_others_posts ) ) {
+			if (
+				! empty( $input['authorId'] ) &&
+				get_current_user_id() !== $input['authorId'] &&
+				(
+					! isset( $post_type_object->cap->edit_others_posts ) || ! current_user_can( $post_type_object->cap->edit_others_posts )
+				)
+			) {
 				throw new UserError( __( 'Sorry, you are not allowed to create mediaItems as this user', 'wp-graphql' ) );
 			}
 
@@ -231,6 +256,10 @@ class MediaItemCreate {
 			 * post_mime_type (pulled from the file if not entered in the mutation)
 			 */
 			$attachment_id = wp_insert_attachment( $media_item_args, $file['file'], $attachment_parent_id );
+
+			if ( is_wp_error( $attachment_id ) ) {
+				throw new UserError( $attachment_id->get_error_message() );
+			}
 
 			/**
 			 * Check if the wp_generate_attachment_metadata method exists and include it if not
@@ -248,7 +277,7 @@ class MediaItemCreate {
 			/**
 			 * Update alt text postmeta for mediaItem
 			 */
-			MediaItemMutation::update_additional_media_item_data( $attachment_id, $input, get_post_type_object( 'attachment' ), 'createMediaItem', $context, $info );
+			MediaItemMutation::update_additional_media_item_data( $attachment_id, $input, $post_type_object, 'createMediaItem', $context, $info );
 
 			return [
 				'postObjectId' => $attachment_id,

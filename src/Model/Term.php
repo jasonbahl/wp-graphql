@@ -2,6 +2,7 @@
 
 namespace WPGraphQL\Model;
 
+use GraphQL\Error\UserError;
 use GraphQLRelay\Relay;
 
 /**
@@ -39,6 +40,11 @@ class Term extends Model {
 	 */
 	protected $taxonomy_object;
 
+	/**
+	 * Stores the global post for use in resetting
+	 *
+	 * @var \WP_Post
+	 */
 	protected $global_post;
 
 	/**
@@ -51,12 +57,18 @@ class Term extends Model {
 	 */
 	public function __construct( \WP_Term $term ) {
 		$this->data            = $term;
-		$this->taxonomy_object = get_taxonomy( $term->taxonomy );
+		$tax_object = get_taxonomy( $term->taxonomy );
+		if ( empty( $tax_object ) ) {
+			throw new \Exception( __( 'The taxonomy for the term could not be found', 'wp-graphql' ) );
+		}
+		$this->taxonomy_object = $tax_object;
 		parent::__construct();
 	}
 
 	/**
 	 * Setup the global state for the model to have proper context when resolving
+	 *
+	 * @return void
 	 */
 	public function setup() {
 
@@ -67,7 +79,7 @@ class Term extends Model {
 		 */
 		$this->global_post = $post;
 
-		if ( $this->data ) {
+		if ( ! empty( $this->data ) ) {
 
 			/**
 			 * Reset global post
@@ -98,6 +110,8 @@ class Term extends Model {
 	/**
 	 * Reset global state after the model fields
 	 * have been generated
+	 *
+	 * @return void
 	 */
 	public function tear_down() {
 		$GLOBALS['post'] = $this->global_post;
@@ -115,7 +129,7 @@ class Term extends Model {
 
 			$this->fields = [
 				'id'                       => function() {
-					return ( ! empty( $this->data->taxonomy ) && ! empty( $this->data->term_id ) ) ? Relay::toGlobalId( 'term', $this->data->term_id ) : null;
+					return ( ! empty( $this->data->taxonomy ) && ! empty( $this->data->term_id ) ) ? Relay::toGlobalId( 'term', (string) $this->data->term_id ) : null;
 				},
 				'term_id'                  => function() {
 					return ( ! empty( $this->data->term_id ) ) ? absint( $this->data->term_id ) : null;
@@ -147,7 +161,7 @@ class Term extends Model {
 					return ( ! is_wp_error( $link ) ) ? $link : null;
 				},
 				'parentId'                 => function() {
-					return ! empty( $this->data->parent ) ? Relay::toGlobalId( 'term', $this->data->parent ) : null;
+					return ! empty( $this->data->parent ) ? Relay::toGlobalId( 'term', (string) $this->data->parent ) : null;
 				},
 				'parentDatabaseId'         => function() {
 					return ! empty( $this->data->parent ) ? $this->data->parent : null;

@@ -14,8 +14,11 @@ use WPGraphQL\Data\DataSource;
  * @package WPGraphQL\Mutation
  */
 class CommentRestore {
+
 	/**
 	 * Registers the CommentRestore mutation.
+	 *
+	 * @return void
 	 */
 	public static function register_mutation() {
 		register_graphql_mutation(
@@ -57,17 +60,14 @@ class CommentRestore {
 				'resolve'     => function ( $payload ) {
 					$restore = (object) $payload['commentObject'];
 
-					return ! empty( $restore->comment_ID ) ? Relay::toGlobalId( 'comment', absint( $restore->comment_ID ) ) : null;
+					return ! empty( $restore->comment_ID ) ? Relay::toGlobalId( 'comment', $restore->comment_ID ) : null;
 				},
 			],
 			'comment'    => [
 				'type'        => 'Comment',
 				'description' => __( 'The restored comment object', 'wp-graphql' ),
 				'resolve'     => function ( $payload, $args, AppContext $context, ResolveInfo $info ) {
-					if ( ! isset( $payload['commentObject']->comment_ID ) || ! absint( $payload['commentObject']->comment_ID ) ) {
-						return null;
-					}
-					return DataSource::resolve_comment( absint( $payload['commentObject']->comment_ID ), $context );
+					return isset( $payload['commentObject']->comment_ID ) && absint( $payload['commentObject']->comment_ID ) ? $context->get_loader( 'comment' )->load_deferred() : null;
 				},
 			],
 		];

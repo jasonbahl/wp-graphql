@@ -6,7 +6,18 @@ use GraphQL\Type\Definition\ResolveInfo;
 use WPGraphQL\AppContext;
 use WPGraphQL\Data\DataSource;
 
+/**
+ * Class MenuItem
+ *
+ * @package WPGraphQL\Type\Object
+ */
 class MenuItem {
+
+	/**
+	 * Register the MenuItem type
+	 *
+	 * @return void
+	 */
 	public static function register_type() {
 		register_graphql_object_type(
 			'MenuItem',

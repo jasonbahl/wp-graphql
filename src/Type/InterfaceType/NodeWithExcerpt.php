@@ -3,9 +3,19 @@ namespace WPGraphQL\Type\InterfaceType;
 
 use WPGraphQL\Registry\TypeRegistry;
 
+/**
+ * Class NodeWithExcerpt
+ *
+ * @package WPGraphQL\Type\InterfaceType
+ */
 class NodeWithExcerpt {
+
 	/**
+	 * Register the NodeWithExcerpt Interface Type
+	 *
 	 * @param TypeRegistry $type_registry Instance of the Type Registry
+	 *
+	 * @return void
 	 */
 	public static function register_type( $type_registry ) {
 		register_graphql_interface_type(

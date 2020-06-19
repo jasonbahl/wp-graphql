@@ -14,8 +14,11 @@ use WPGraphQL\Model\User;
  * @package WPGraphQL\Mutation
  */
 class UserCreate {
+
 	/**
 	 * Registers the CommentCreate mutation.
+	 *
+	 * @return void
 	 */
 	public static function register_mutation() {
 		register_graphql_mutation(
@@ -124,10 +127,9 @@ class UserCreate {
 		return [
 			'user' => [
 				'type'    => 'User',
-				'resolve' => function( $payload ) {
-					$user = get_user_by( 'ID', $payload['id'] );
+				'resolve' => function( $payload, $args, AppContext $context, $info ) {
 
-					return new User( $user );
+					return ! empty( $payload['id'] ) ? $context->get_loader( 'user' )->load_deferred( absint( $payload['id'] ) ) : null;
 				},
 			],
 		];

@@ -16,9 +16,11 @@ class TermObject {
 	/**
 	 * Register the Type for each kind of Taxonomy
 	 *
-	 * @param $taxonomy_object
+	 * @param \WP_Taxonomy $taxonomy_object The taxonomy to register types for
+	 *
+	 * @return void
 	 */
-	public static function register_taxonomy_object_type( $taxonomy_object ) {
+	public static function register_taxonomy_object_type( \WP_Taxonomy $taxonomy_object ) {
 
 		$interfaces = [ 'Node', 'TermNode', 'UniformResourceIdentifiable' ];
 
@@ -26,7 +28,12 @@ class TermObject {
 			$interfaces[] = 'HierarchicalTermNode';
 		}
 
-		$single_name = $taxonomy_object->graphql_single_name;
+		$single_name = isset( $taxonomy_object->graphql_single_name ) ? $taxonomy_object->graphql_single_name : null;
+
+		if ( empty( $single_name ) ) {
+			return;
+		}
+
 		register_graphql_object_type(
 			$single_name,
 			[
@@ -52,10 +59,10 @@ class TermObject {
 
 		if ( true === $taxonomy_object->hierarchical ) {
 			register_graphql_field(
-				$taxonomy_object->graphql_single_name,
+				$single_name,
 				'parent',
 				[
-					'type'        => $taxonomy_object->graphql_single_name,
+					'type'        => $single_name,
 					'description' => __( 'The parent object', 'wp-graphql' ),
 					'resolve'     => function( Term $term, $args, AppContext $context, $info ) {
 						return isset( $term->parentDatabaseId ) ? $context->get_loader( 'term' )->load_deferred( $term->parentDatabaseId ) : null;
@@ -64,11 +71,11 @@ class TermObject {
 			);
 
 			register_graphql_field(
-				$taxonomy_object->graphql_single_name,
+				$single_name,
 				'ancestors',
 				[
 					'type'        => [
-						'list_of' => $taxonomy_object->graphql_single_name,
+						'list_of' => $single_name,
 					],
 					'description' => esc_html__( 'The ancestors of the object', 'wp-graphql' ),
 					'resolve'     => function( Term $term, $args, $context, $info ) {

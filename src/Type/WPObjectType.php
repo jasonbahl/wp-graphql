@@ -24,7 +24,7 @@ class WPObjectType extends ObjectType {
 	 * to easily define themselves as a node type by implementing
 	 * self::$node_interface
 	 *
-	 * @var $node_interface
+	 * @var array|Node
 	 * @since 0.0.5
 	 */
 	private static $node_interface;
@@ -55,9 +55,10 @@ class WPObjectType extends ObjectType {
 		 * Filter the config of WPObjectType
 		 *
 		 * @param array        $config Array of configuration options passed to the WPObjectType when instantiating a new type
-		 * @param WPObjectType $this   The instance of the WPObjectType class
+		 * @param WPObjectType $class  The instance of the WPObjectType class
 		 */
-		$config = apply_filters( 'graphql_wp_object_type_config', $config, $this );
+		$class  = $this;
+		$config = apply_filters( 'graphql_wp_object_type_config', $config, $class );
 
 		/**
 		 * Set the Types to start with capitals
@@ -71,15 +72,15 @@ class WPObjectType extends ObjectType {
 		 *
 		 * @param array        $interfaces List of interfaces applied to the Object Type
 		 * @param array        $config     The config for the Object Type
-		 * @param WPObjectType $this       The WPObjectType instance
+		 * @param WPObjectType $class      The WPObjectType instance
 		 */
-		$interfaces               = apply_filters( 'graphql_object_type_interfaces', $interfaces, $config, $this );
+		$interfaces               = apply_filters( 'graphql_object_type_interfaces', $interfaces, $config, $class );
 		$config['interfaceNames'] = $interfaces;
 
 		/**
 		 * Convert Interfaces from Strings to Types
 		 */
-		$config['interfaces'] = function() use ( $config, $interfaces ) {
+		$config['interfaces'] = function() use ( $interfaces ) {
 			$new_interfaces = [];
 			if ( ! empty( $interfaces ) && is_array( $interfaces ) ) {
 				foreach ( $interfaces as $interface_name ) {
@@ -202,10 +203,11 @@ class WPObjectType extends ObjectType {
 		 *
 		 * @param array        $fields        The array of fields for the object config
 		 * @param string       $type_name     The name of the object type
-		 * @param WPObjectType $this          The WPObjectType Class
+		 * @param WPObjectType $class         The WPObjectType Class
 		 * @param TypeRegistry $type_registry The Type Registry
 		 */
-		$fields = apply_filters( 'graphql_object_fields', $fields, $type_name, $this, $this->type_registry );
+		$class  = $this;
+		$fields = apply_filters( 'graphql_object_fields', $fields, $type_name, $class, $this->type_registry );
 
 		/**
 		 * Filter once with lowercase, once with uppercase for Back Compat.
@@ -220,10 +222,10 @@ class WPObjectType extends ObjectType {
 		 * more specific overrides
 		 *
 		 * @param array        $fields        The array of fields for the object config
-		 * @param WPObjectType $this          The WPObjectType Class
+		 * @param WPObjectType $class          The WPObjectType Class
 		 * @param TypeRegistry $type_registry The Type Registry
 		 */
-		$fields = apply_filters( "graphql_{$lc_type_name}_fields", $fields, $this, $this->type_registry );
+		$fields = apply_filters( "graphql_{$lc_type_name}_fields", $fields, $class, $this->type_registry );
 
 		/**
 		 * Filter the fields with the typename explicitly in the filter name
@@ -232,10 +234,10 @@ class WPObjectType extends ObjectType {
 		 * more specific overrides
 		 *
 		 * @param array        $fields        The array of fields for the object config
-		 * @param WPObjectType $this          The WPObjectType Class
+		 * @param WPObjectType $class          The WPObjectType Class
 		 * @param TypeRegistry $type_registry The Type Registry
 		 */
-		$fields = apply_filters( "graphql_{$uc_type_name}_fields", $fields, $this, $this->type_registry );
+		$fields = apply_filters( "graphql_{$uc_type_name}_fields", $fields, $class, $this->type_registry );
 
 		/**
 		 * This sorts the fields alphabetically by the key, which is super handy for making the schema readable,

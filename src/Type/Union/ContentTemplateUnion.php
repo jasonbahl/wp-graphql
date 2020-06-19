@@ -1,17 +1,35 @@
 <?php
 namespace WPGraphQL\Type\Union;
+use WPGraphQL\Registry\TypeRegistry;
 
+/**
+ * Class ContentTemplateUnion
+ *
+ * @package WPGraphQL\Type\Union
+ */
 class ContentTemplateUnion {
-	public static function register_type( $type_registry ) {
 
-		$registered_page_templates = wp_get_theme()->get_post_templates();
+	/**
+	 * Register the ContentTemplateUnion Type
+	 *
+	 * @param TypeRegistry $type_registry The WPGraphQL Type Registry
+	 *
+	 * @return void
+	 */
+	public static function register_type( TypeRegistry $type_registry ) {
 
-		if ( ! empty( $registered_page_templates ) && is_array( $registered_page_templates ) ) {
+		$theme                = wp_get_theme();
+		$registered_templates = (array) $theme->get_post_templates() ?? [];
+
+		if ( is_array( $registered_templates ) && ! empty( $registered_templates ) ) {
 
 			$page_templates['default'] = 'Default';
-			foreach ( $registered_page_templates as $post_type_templates ) {
-				foreach ( $post_type_templates as $file => $name ) {
-					$page_templates[ $file ] = $name;
+			foreach ( $registered_templates as $post_type_templates ) {
+				$post_type_templates = (array) $post_type_templates;
+				if ( is_array( $post_type_templates ) && ! empty( $post_type_templates ) ) {
+					foreach ( $post_type_templates as $file => $name ) {
+						$page_templates[ $file ] = $name;
+					}
 				}
 			}
 		}
@@ -31,12 +49,12 @@ class ContentTemplateUnion {
 						'description' => __( 'The template assigned to the node', 'wp-graphql' ),
 						'fields'      => [
 							'templateName' => [
-								'resolve' => function( $template ) use ( $page_templates ) {
+								'resolve' => function( $template ) {
 									return isset( $template['templateName'] ) ? $template['templateName'] : null;
 								},
 							],
 							'templateFile' => [
-								'resolve' => function( $template ) use ( $page_templates ) {
+								'resolve' => function( $template ) {
 									return isset( $template['templateFile'] ) ? $template['templateFile'] : null;
 								},
 							],
@@ -54,7 +72,7 @@ class ContentTemplateUnion {
 					'ContentTemplateUnion',
 					[
 						'typeNames'   => $type_names,
-						'resolveType' => function( $value ) use ( $type_names_by_file, $type_registry ) {
+						'resolveType' => function( $value ) {
 							return isset( $value['__typename'] ) ? $value['__typename'] : 'DefaultTemplate';
 						},
 					]

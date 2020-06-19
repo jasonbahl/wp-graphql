@@ -14,7 +14,7 @@ class Utils {
 	 */
 	public static function map_input( $args, $map ) {
 
-		if ( ! is_array( $args ) || ! is_array( $map ) ) {
+		if ( empty( $args ) || ! is_array( $map ) ) {
 			return [];
 		}
 
@@ -79,7 +79,11 @@ class Utils {
 	 * @return string
 	 */
 	public static function format_field_name( $field_name ) {
-		$field_name = lcfirst( preg_replace( '[^a-zA-Z0-9 -]', '_', $field_name ) );
+		$field_name = preg_replace( '[^a-zA-Z0-9 -]', '_', $field_name );
+		if ( empty( $field_name ) ) {
+			return '';
+		}
+		$field_name = lcfirst( $field_name );
 		$field_name = lcfirst( str_replace( '_', ' ', ucwords( $field_name, '_' ) ) );
 		$field_name = lcfirst( str_replace( '-', ' ', ucwords( $field_name, '_' ) ) );
 		$field_name = lcfirst( str_replace( ' ', '', ucwords( $field_name, ' ' ) ) );

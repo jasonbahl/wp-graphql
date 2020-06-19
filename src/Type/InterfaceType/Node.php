@@ -3,7 +3,18 @@ namespace WPGraphQL\Type\InterfaceType;
 
 use WPGraphQL\Data\DataSource;
 
+/**
+ * Class Node
+ *
+ * @package WPGraphQL\Type\InterfaceType
+ */
 class Node {
+
+	/**
+	 * Register the Node Interface Type
+	 *
+	 * @return void
+	 */
 	public static function register_type() {
 		register_graphql_interface_type(
 			'Node',

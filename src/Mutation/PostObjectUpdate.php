@@ -5,16 +5,27 @@ use GraphQL\Error\UserError;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQLRelay\Relay;
 use WPGraphQL\AppContext;
-use WPGraphQL\Data\DataSource;
 use WPGraphQL\Data\PostObjectMutation;
 
+/**
+ * Class PostObjectUpdate
+ *
+ * @package WPGraphQL\Mutation
+ */
 class PostObjectUpdate {
 	/**
 	 * Registers the PostObjectUpdate mutation.
 	 *
 	 * @param \WP_Post_Type $post_type_object   The post type of the mutation.
+	 *
+	 * @return void
 	 */
 	public static function register_mutation( \WP_Post_Type $post_type_object ) {
+
+		if ( ! isset( $post_type_object->graphql_single_name ) ) {
+			return;
+		}
+
 		$mutation_name = 'update' . ucwords( $post_type_object->graphql_single_name );
 
 		register_graphql_mutation(
@@ -35,6 +46,11 @@ class PostObjectUpdate {
 	 * @return array
 	 */
 	public static function get_input_fields( $post_type_object ) {
+
+		if ( ! isset( $post_type_object->graphql_single_name ) ) {
+			return [];
+		}
+
 		return array_merge(
 			PostObjectCreate::get_input_fields( $post_type_object ),
 			[
@@ -71,15 +87,17 @@ class PostObjectUpdate {
 	public static function mutate_and_get_payload( $post_type_object, $mutation_name ) {
 		return function ( $input, AppContext $context, ResolveInfo $info ) use ( $post_type_object, $mutation_name ) {
 
+			$type_name = isset( $post_type_object->graphql_single_name ) ? $post_type_object->graphql_single_name : $post_type_object->name;
+
 			$id_parts      = ! empty( $input['id'] ) ? Relay::fromGlobalId( $input['id'] ) : null;
-			$existing_post = get_post( absint( $id_parts['id'] ) );
+			$existing_post = isset( $id_parts['id'] ) ? get_post( absint( $id_parts['id'] ) ) : null;
 
 			/**
 			 * If there's no existing post, throw an exception
 			 */
-			if ( empty( $id_parts['id'] ) || false === $existing_post ) {
+			if ( empty( $id_parts['id'] ) || empty( $existing_post ) ) {
 				// translators: the placeholder is the name of the type of post being updated
-				throw new UserError( sprintf( __( 'No %1$s could be found to update', 'wp-graphql' ), $post_type_object->graphql_single_name ) );
+				throw new UserError( sprintf( __( 'No %1$s could be found to update', 'wp-graphql' ), $type_name ) );
 			}
 
 			if ( $post_type_object->name !== $existing_post->post_type ) {
@@ -90,9 +108,9 @@ class PostObjectUpdate {
 			/**
 			 * Stop now if a user isn't allowed to edit posts
 			 */
-			if ( ! current_user_can( $post_type_object->cap->edit_posts ) ) {
+			if ( ! isset( $post_type_object->cap->edit_posts ) || ! current_user_can( $post_type_object->cap->edit_posts ) ) {
 				// translators: the $post_type_object->graphql_single_name placeholder is the name of the object being mutated
-				throw new UserError( sprintf( __( 'Sorry, you are not allowed to update a %1$s', 'wp-graphql' ), $post_type_object->graphql_single_name ) );
+				throw new UserError( sprintf( __( 'Sorry, you are not allowed to update a %1$s', 'wp-graphql' ), $type_name ) );
 			}
 
 			/**
@@ -100,9 +118,11 @@ class PostObjectUpdate {
 			 * make sure they have permission to edit others posts
 			 */
 			$author_id_parts = ! empty( $input['authorId'] ) ? Relay::fromGlobalId( $input['authorId'] ) : null;
-			if ( ! empty( $author_id_parts['id'] ) && get_current_user_id() !== $author_id_parts['id'] && ! current_user_can( $post_type_object->cap->edit_others_posts ) ) {
+			if ( ! isset( $post_type_object->cap->edit_others_posts ) || (
+				! empty( $author_id_parts['id'] ) && get_current_user_id() !== $author_id_parts['id'] && ! current_user_can( $post_type_object->cap->edit_others_posts ) )
+			) {
 				// translators: the $post_type_object->graphql_single_name placeholder is the name of the object being mutated
-				throw new UserError( sprintf( __( 'Sorry, you are not allowed to update %1$s as this user.', 'wp-graphql' ), $post_type_object->graphql_plural_name ) );
+				throw new UserError( sprintf( __( 'Sorry, you are not allowed to update %1$s as this user.', 'wp-graphql' ), $type_name ) );
 			}
 
 			/**
@@ -124,7 +144,8 @@ class PostObjectUpdate {
 			/**
 			 * Insert the post and retrieve the ID
 			 */
-			$post_id = wp_update_post( wp_slash( (array) $post_args ), true );
+			$post_args = (array) wp_unslash( $post_args );
+			$post_id   = wp_update_post( $post_args, true );
 
 			/**
 			 * Throw an exception if the post failed to update

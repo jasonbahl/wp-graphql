@@ -1,7 +1,18 @@
 <?php
 namespace WPGraphQL\Type\Input;
 
+/**
+ * Class DateInput
+ *
+ * @package WPGraphQL\Type\Input
+ */
 class DateInput {
+
+	/**
+	 * Register the DateInput Type
+	 *
+	 * @return void
+	 */
 	public static function register_type() {
 		register_graphql_input_type(
 			'DateInput',

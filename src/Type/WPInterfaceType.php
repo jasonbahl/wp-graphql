@@ -35,9 +35,10 @@ class WPInterfaceType extends InterfaceType {
 		 * Filter the config of WPInterfaceType
 		 *
 		 * @param array           $config Array of configuration options passed to the WPInterfaceType when instantiating a new type
-		 * @param WPInterfaceType $this   The instance of the WPObjectType class
+		 * @param WPInterfaceType $class   The instance of the WPObjectType class
 		 */
-		$config = apply_filters( 'graphql_wp_interface_type_config', $config, $this );
+		$class  = $this;
+		$config = apply_filters( 'graphql_wp_interface_type_config', $config, $class );
 
 		parent::__construct( $config );
 	}
