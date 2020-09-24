@@ -3,6 +3,7 @@
 namespace WPGraphQL\Admin;
 
 use WPGraphQL\Admin\GraphiQL\GraphiQL;
+use WPGraphQL\Admin\SchemaLogger\SchemaLogger;
 use WPGraphQL\Admin\Settings\Settings;
 use WPGraphQL\Admin\Extensions\Extensions;
 
@@ -58,6 +59,9 @@ class Admin {
 
 		$this->settings = new Settings();
 		$this->settings->init();
+
+		$schema_logger = new SchemaLogger();
+		$schema_logger->init();
 
 		if ( 'on' === $this->graphiql_enabled || true === $this->graphiql_enabled ) {
 			$graphiql = new GraphiQL();
