@@ -13,7 +13,7 @@ import {
     Tooltip,
     Avatar
 } from '@chakra-ui/core'
-import {Link, useStaticQuery} from 'gatsby'
+import {Link, useStaticQuery, graphql} from 'gatsby'
 import {FaArrowRight, FaWordpress} from 'react-icons/fa'
 import Layout from '../components/layout'
 import Container from "../components/container";

@@ -6,9 +6,7 @@ import {
     Icon,
     IconButton,
     Link,
-    useColorMode,
 } from "@chakra-ui/core"
-import { FaMoon, FaSun } from "react-icons/fa"
 
 const GithubIcon = (props) => (
     <svg viewBox="0 0 20 20" {...props}>
