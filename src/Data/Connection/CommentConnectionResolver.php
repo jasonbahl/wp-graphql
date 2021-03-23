@@ -111,6 +111,7 @@ class CommentConnectionResolver extends AbstractConnectionResolver {
 		 * objects.
 		 */
 		$query_args['fields'] = 'ids';
+		$query_args['type']   = 'comment';
 
 		/**
 		 * Filter the query_args that should be applied to the query. This filter is applied AFTER the input args from
@@ -181,8 +182,8 @@ class CommentConnectionResolver extends AbstractConnectionResolver {
 	 *
 	 * @param array $args The array of query arguments
 	 *
-	 * @since  0.0.5
 	 * @return array
+	 * @since  0.0.5
 	 */
 	public function sanitize_input_fields( array $args ) {
 

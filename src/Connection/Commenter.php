@@ -26,9 +26,7 @@ class Commenter {
 			'toType' => 'CommentAuthor',
 			'fromFieldName' => 'commentAuthors',
 			'resolve' => function( $source, $args, AppContext $context, ResolveInfo $info ) {
-
 				$resolver = new CommentAuthorConnectionResolver( $source, $args, $context, $info );
-				$resolver->set_query_arg( 'author__in', [ 0 ] );
 				return $resolver->get_connection();
 
 			}

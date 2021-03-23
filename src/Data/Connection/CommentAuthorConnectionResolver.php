@@ -8,4 +8,15 @@ class CommentAuthorConnectionResolver extends CommentConnectionResolver {
 		return 'comment_author';
 	}
 
+	public function get_query_args() {
+		$args = parent::get_query_args();
+
+		// When querying for Comment Authors, we only care about comments
+		// that have no user as the author
+		$args['author__in'] = 0;
+
+		return $args;
+
+	}
+
 }
