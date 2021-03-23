@@ -4,6 +4,8 @@ namespace WPGraphQL\Connection;
 
 use GraphQL\Type\Definition\ResolveInfo;
 use WPGraphQL\AppContext;
+use WPGraphQL\Data\Connection\CommentAuthorConnectionResolver;
+use WPGraphQL\Data\Connection\CommentConnectionResolver;
 
 /**
  * Class Commenter
@@ -18,6 +20,19 @@ class Commenter {
 	 * @return void
 	 */
 	public static function register_connections() {
+
+		register_graphql_connection([
+			'fromType' => 'RootQuery',
+			'toType' => 'CommentAuthor',
+			'fromFieldName' => 'commentAuthors',
+			'resolve' => function( $source, $args, AppContext $context, ResolveInfo $info ) {
+
+				$resolver = new CommentAuthorConnectionResolver( $source, $args, $context, $info );
+				$resolver->set_query_arg( 'author__in', [ 0 ] );
+				return $resolver->get_connection();
+
+			}
+		]);
 
 		register_graphql_connection([
 			'fromType'      => 'Comment',

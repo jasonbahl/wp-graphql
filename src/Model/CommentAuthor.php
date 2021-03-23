@@ -10,6 +10,7 @@ use WP_Comment;
  * Class CommentAuthor - Models the CommentAuthor object
  *
  * @property string $id
+ * @property int $databaseId
  * @property string $name
  * @property string $email
  * @property string $url
@@ -49,6 +50,9 @@ class CommentAuthor extends Model {
 			$this->fields = [
 				'id'    => function() {
 					return ! empty( $this->data->comment_ID ) ? Relay::toGlobalId( 'comment_author', $this->data->comment_ID ) : null;
+				},
+				'databaseId' => function() {
+					return ! empty( $this->data->comment_ID ) ? absint( $this->data->comment_ID ) : null;
 				},
 				'name'  => function() {
 					return ! empty( $this->data->comment_author ) ? $this->data->comment_author : null;
