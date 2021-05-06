@@ -38,7 +38,14 @@ class GraphiQL {
 		add_action( 'admin_menu', [ $this, 'register_admin_page' ], 11 );
 		add_action( 'admin_bar_menu', [ $this, 'register_admin_bar_menu' ], 100 );
 		// Enqueue GraphiQL React App
+		add_action( 'admin_register_scripts', [ $this, 'register_scripts' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_graphiql' ] );
+
+
+		add_filter( 'script_loader_tag', function( $tag, $handle ) {
+			if ( ! preg_match( '/^graphiql-/', $handle ) ) { return $tag; }
+			return str_replace( ' src', ' async defer src', $tag );
+		}, 10, 2 );
 
 	}
 
@@ -102,7 +109,7 @@ class GraphiQL {
 	 */
 	public function get_app_manifest() {
 		$manifest = file_get_contents( dirname( __FILE__ ) . '/app/build/asset-manifest.json' );
-		$manifest = ! empty( $manifest ) ? (array) json_decode( $manifest ) : [];
+		$manifest = ! empty( $manifest ) ? (array) json_decode( $manifest, true )['files'] : [];
 		return $manifest;
 	}
 
@@ -116,7 +123,7 @@ class GraphiQL {
 		if ( empty( $manifest['main.css'] ) ) {
 			return '';
 		}
-		return WPGRAPHQL_PLUGIN_URL . 'src/Admin/GraphiQL/app/build/' . $manifest['main.css'];
+		return WPGRAPHQL_PLUGIN_URL . 'src/Admin/GraphiQL/app/build' . $manifest['main.css'];
 	}
 
 	/**
@@ -129,7 +136,15 @@ class GraphiQL {
 		if ( empty( $manifest['main.js'] ) ) {
 			return '';
 		}
-		return WPGRAPHQL_PLUGIN_URL . 'src/Admin/GraphiQL/app/build/' . $manifest['main.js'];
+		return WPGRAPHQL_PLUGIN_URL . 'src/Admin/GraphiQL/app/build' . $manifest['main.js'];
+	}
+
+	public function get_app_runtime_script() {
+		$manifest = $this->get_app_manifest();
+		if ( empty( $manifest['runtime-main.js'] ) ) {
+			return '';
+		}
+		return WPGRAPHQL_PLUGIN_URL . 'src/Admin/GraphiQL/app/build' . $manifest['runtime-main.js'];
 	}
 
 	/**
@@ -157,15 +172,37 @@ class GraphiQL {
 		 */
 		if ( ! empty( get_current_screen() ) && strpos( get_current_screen()->id, 'graphiql' ) ) {
 
-			wp_enqueue_style( 'graphiql', $this->get_app_stylesheet(), [], false );
+			wp_enqueue_style( 'graphiql-css', $this->get_app_stylesheet(), [], false );
 			wp_enqueue_script( 'graphiql-helpers', $this->get_app_script_helpers(), [ 'jquery' ], false, true );
-			wp_enqueue_script( 'graphiql', $this->get_app_script(), [], false, true );
+
+			wp_enqueue_script( 'graphiql-runtime', $this->get_app_runtime_script(), [], null, true );
+
+			wp_enqueue_script( 'graphiql-main', $this->get_app_script(), [ 'graphiql-runtime' ], null, true );
+
+			foreach ( $this->get_app_manifest() as $key => $value ) {
+
+
+				if ( preg_match( '@static/js/(.*)\.chunk\.js@', $key, $matches ) ) {
+
+					if ( $matches && is_array( $matches ) && count( $matches ) === 2 ) {
+						$name = "graphiql-" . preg_replace( '/[^A-Za-z0-9_]/', '-', $matches[1] );
+						wp_enqueue_script( $name, WPGRAPHQL_PLUGIN_URL . 'src/Admin/GraphiQL/app/build' . $value, array( 'graphiql-main' ), null, true );
+					}
+				}
+
+				if ( preg_match( '@static/css/(.*)\.chunk\.css@', $key, $matches ) ) {
+					if ( $matches && is_array( $matches ) && count( $matches ) == 2 ) {
+						$name = "graphiql-" . preg_replace( '/[^A-Za-z0-9_]/', '-', $matches[1] );
+						wp_enqueue_style( $name, WPGRAPHQL_PLUGIN_URL . 'src/Admin/GraphiQL/app/build' . $value, array( 'graphiql-css' ), null );
+					}
+				}
+			}
 
 			/**
 			 * Create a nonce
 			 */
 			wp_localize_script(
-				'graphiql',
+				'graphiql-main',
 				'wpGraphiQLSettings',
 				[
 					'nonce'           => wp_create_nonce( 'wp_rest' ),
