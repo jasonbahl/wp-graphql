@@ -1,13 +1,5 @@
-#wp-graphiql {
-    display: flex;
-    flex: 1;
-}
+@import '~antd/dist/antd.css';
 
-#wp-graphiql .spinner{
-    visibility: visible;
-    background: none;
-}
-
-#graphiql .graphiql-container {
-    height: calc(100vh - 100px);
+.graphiql-container .doc-explorer-title {
+    overflow-x: visible;
 }

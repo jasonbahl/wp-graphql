@@ -1,0 +1,1 @@
+{"version":3,"sources":["style.css","app.css"],"names":[],"mappings":"AAAA,8BACI,0BACJ,CCAA,wCACI,kBACJ","file":"main.5cd9e7ac.chunk.css","sourcesContent":["#graphiql .graphiql-container {\n    height: calc(100vh - 100px);\n}\n","@import '~antd/dist/antd.css';\n\n.graphiql-container .doc-explorer-title {\n    overflow-x: visible;\n}\n"]}

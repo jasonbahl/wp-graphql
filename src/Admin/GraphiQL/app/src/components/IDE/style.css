@@ -1,0 +1,3 @@
+#graphiql .graphiql-container {
+    height: calc(100vh - 100px);
+}

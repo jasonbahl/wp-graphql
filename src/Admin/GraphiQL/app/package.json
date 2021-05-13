@@ -1,35 +1,43 @@
 {
-  "name": "wp-graphiql",
-  "description": "This plugin provides the GraphiQL IDE as an admin page in WordPress, allowing the GraphQL WPGraphQL schema to be browsed from within WordPress.",
-  "author": "WPGraphQL, Jason Bahl",
-  "homepage": "",
-  "bugs": {
-    "url": "https://github.com/wp-graphql/wp-graphiql/issues"
-  },
-  "version": "1.0.0",
-  "private": true,
-  "devDependencies": {
-    "react-scripts": "3.4.1"
-  },
-  "dependencies": {
-    "graphiql": "0.17.5",
-    "graphiql-code-exporter": "^2.0.5",
-    "graphiql-explorer": "^0.4.3",
-    "graphql": "^14.6.0",
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1",
-    "whatwg-fetch": "^3.0.0"
-  },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test --env=jsdom",
-    "eject": "react-scripts eject"
-  },
-  "browserslist": [
-    ">0.2%",
-    "not dead",
-    "not ie <= 11",
-    "not op_mini all"
-  ]
+    "name": "wp-graphiql",
+    "description": "This plugin provides the GraphiQL IDE as an admin page in WordPress, allowing the GraphQL WPGraphQL schema to be browsed from within WordPress.",
+    "author": "WPGraphQL, Jason Bahl",
+    "homepage": "",
+    "bugs": {
+        "url": "https://github.com/wp-graphql/wp-graphiql/issues"
+    },
+    "version": "1.0.0",
+    "private": true,
+    "devDependencies": {
+        "eslint-config-prettier": "^8.3.0",
+        "husky": "^6.0.0",
+        "lint-staged": "^11.0.0",
+        "prettier": "2.3.0",
+        "react-scripts": "3.4.1"
+    },
+    "dependencies": {
+        "antd": "^4.15.5",
+        "graphiql": "0.17.5",
+        "graphiql-code-exporter": "^2.0.5",
+        "graphiql-explorer": "^0.4.3",
+        "graphql": "^14.6.0",
+        "graphql-query-compress": "^1.2.4",
+        "react": "^16.13.1",
+        "react-dom": "^16.13.1",
+        "react-use-error-boundary": "^0.0.5",
+        "whatwg-fetch": "^3.0.0"
+    },
+    "scripts": {
+        "start": "react-scripts start",
+        "build": "react-scripts build",
+        "test": "react-scripts test --env=jsdom",
+        "eject": "react-scripts eject",
+        "prettier": "prettier --write ."
+    },
+    "browserslist": [
+        ">0.2%",
+        "not dead",
+        "not ie <= 11",
+        "not op_mini all"
+    ]
 }

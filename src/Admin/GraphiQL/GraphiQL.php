@@ -99,7 +99,7 @@ class GraphiQL {
 	 * @return void
 	 */
 	public function render_graphiql_admin_page() {
-		echo '<div class="wrap"><div id="graphiql" class="graphiql-container">Loading ...</div></div>';
+		echo '<div class="wrap"><div id="graphiql">Loading ...</div></div>';
 	}
 
 	/**
@@ -174,9 +174,7 @@ class GraphiQL {
 
 			wp_enqueue_style( 'graphiql-css', $this->get_app_stylesheet(), [], false );
 			wp_enqueue_script( 'graphiql-helpers', $this->get_app_script_helpers(), [ 'jquery' ], false, true );
-
 			wp_enqueue_script( 'graphiql-runtime', $this->get_app_runtime_script(), [], null, true );
-
 			wp_enqueue_script( 'graphiql-main', $this->get_app_script(), [ 'graphiql-runtime' ], null, true );
 
 			foreach ( $this->get_app_manifest() as $key => $value ) {
