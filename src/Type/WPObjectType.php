@@ -2,7 +2,6 @@
 
 namespace WPGraphQL\Type;
 
-use GraphQL\Error\UserError;
 use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\ObjectType;
 use WPGraphQL\Data\DataSource;
@@ -21,6 +20,7 @@ use WPGraphQL\Type\InterfaceType\Node;
 class WPObjectType extends ObjectType {
 
 	use WPInterfaceTrait;
+	use WPTypeConnectionsTrait;
 
 	/**
 	 * Holds the node_interface definition allowing WPObjectTypes
@@ -48,7 +48,7 @@ class WPObjectType extends ObjectType {
 	 * @throws \Exception
 	 * @since 0.0.5
 	 */
-	public function __construct( $config, TypeRegistry $type_registry ) {
+	public function __construct( array $config, TypeRegistry $type_registry ) {
 
 		/**
 		 * Get the Type Registry
@@ -68,6 +68,9 @@ class WPObjectType extends ObjectType {
 		 */
 		$name           = ucfirst( $config['name'] );
 		$config['name'] = apply_filters( 'graphql_type_name', $name, $config, $this );
+
+		// Register connections for the type
+		$this->register_type_connections( $config['name'], $config );
 
 		/**
 		 * Setup the fields
@@ -166,14 +169,14 @@ class WPObjectType extends ObjectType {
 	 * This function sorts the fields and applies a filter to allow for easily
 	 * extending/modifying the shape of the Schema for the type.
 	 *
-	 * @param array  $fields
-	 * @param string $type_name
-	 * @param array  $config
+	 * @param array  $fields The fields configured for the Object Type
+	 * @param string $type_name The name of the Object Type
+	 * @param array  $config The config of the Object Type
 	 *
 	 * @return mixed
 	 * @since 0.0.5
 	 */
-	public function prepare_fields( $fields, $type_name, $config ) {
+	public function prepare_fields( array $fields, string $type_name, array $config ) {
 
 		/**
 		 * Filter all object fields, passing the $typename as a param

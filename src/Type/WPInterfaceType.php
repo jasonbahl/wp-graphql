@@ -3,13 +3,13 @@
 namespace WPGraphQL\Type;
 
 use Exception;
-use GraphQL\Error\UserError;
 use GraphQL\Type\Definition\InterfaceType;
 use WPGraphQL\Registry\TypeRegistry;
 
 class WPInterfaceType extends InterfaceType {
 
 	use WPInterfaceTrait;
+	use WPTypeConnectionsTrait;
 
 	/**
 	 * Instance of the TypeRegistry as an Interface needs knowledge of available Types
@@ -30,8 +30,12 @@ class WPInterfaceType extends InterfaceType {
 
 		$this->type_registry = $type_registry;
 
-		$name             = ucfirst( $config['name'] );
-		$config['name']   = apply_filters( 'graphql_type_name', $name, $config, $this );
+		$name           = ucfirst( $config['name'] );
+		$config['name'] = apply_filters( 'graphql_type_name', $name, $config, $this );
+
+		// Register connections for the type
+		$this->register_type_connections( $config['name'], $config );
+
 		$config['fields'] = function() use ( $config ) {
 
 			$fields = $config['fields'];

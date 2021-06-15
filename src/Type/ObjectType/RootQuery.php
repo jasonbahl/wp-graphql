@@ -6,6 +6,8 @@ use GraphQL\Error\UserError;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQLRelay\Relay;
 use WPGraphQL\AppContext;
+use WPGraphQL\Data\Connection\EnqueuedScriptsConnectionResolver;
+use WPGraphQL\Data\Connection\EnqueuedStylesheetConnectionResolver;
 use WPGraphQL\Data\DataSource;
 
 /**
@@ -25,6 +27,40 @@ class RootQuery {
 			'RootQuery',
 			[
 				'description' => __( 'The root entry point into the Graph', 'wp-graphql' ),
+				'connections' => [
+					'registeredScripts'     => [
+						'toType'  => 'EnqueuedScript',
+						'resolve' => function( $source, $args, $context, $info ) {
+
+							// The connection resolver expects the source to include
+							// enqueuedScriptsQueue
+							$source                       = new \stdClass();
+							$source->enqueuedScriptsQueue = [];
+							global $wp_scripts;
+							do_action( 'wp_enqueue_scripts' );
+							$source->enqueuedScriptsQueue = array_keys( $wp_scripts->registered );
+							$resolver                     = new EnqueuedScriptsConnectionResolver( $source, $args, $context, $info );
+
+							return $resolver->get_connection();
+						},
+					],
+					'registeredStylesheets' => [
+						'toType'  => 'EnqueuedStylesheet',
+						'resolve' => function( $source, $args, $context, $info ) {
+
+							// The connection resolver expects the source to include
+							// enqueuedStylesheetsQueue
+							$source                           = new \stdClass();
+							$source->enqueuedStylesheetsQueue = [];
+							global $wp_styles;
+							do_action( 'wp_enqueue_scripts' );
+							$source->enqueuedStylesheetsQueue = array_keys( $wp_styles->registered );
+							$resolver                         = new EnqueuedStylesheetConnectionResolver( $source, $args, $context, $info );
+
+							return $resolver->get_connection();
+						},
+					],
+				],
 				'fields'      => [
 					'allSettings' => [
 						'type'        => 'Settings',

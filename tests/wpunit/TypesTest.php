@@ -438,4 +438,167 @@ class TypesTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 
 		$this->assertQueryError( $response, $expected );
 	}
+
+	/**
+	 * Tests registering Connections when registering Types to the Schema
+	 *
+	 * @throws Exception
+	 */
+	public function testRegisterConnectionFromTypeShowsConnectionInSchema() {
+
+		$mock_node = [ 'test' => 'value' ];
+
+		$mock_connection_response = [
+			'edges' => [
+				[
+					'node' => $mock_node,
+				],
+				[
+					'node' => $mock_node,
+				]
+			],
+			'nodes' => [
+				$mock_node,
+				$mock_node
+			]
+		];
+
+
+
+		register_graphql_object_type( 'TypeA', [
+			'fields' => [
+				'test' => [
+					'type' => 'String',
+				]
+			],
+			'connections' => [
+				'typeB' => [
+					'toType' => 'TypeB',
+					'resolve' => function() use ( $mock_connection_response ) {
+						return $mock_connection_response;
+					}
+				],
+				'typeBNode' => [
+					'toType' => 'TypeB',
+					'oneToOne' => true,
+					'resolve' => function() use ( $mock_node ) {
+						return [ 'node' => $mock_node ];
+					}
+				],
+				'circular' => [
+					'toType' => 'TypeA',
+					'oneToOne' => true,
+					'resolve' => function() use ( $mock_node ) {
+						return [ 'node' => $mock_node ];
+					}
+				],
+			]
+		] );
+
+		register_graphql_object_type( 'TypeB', [
+			'fields' => [
+				'test' => [
+					'type' => 'String',
+				]
+			],
+			'connections' => [
+				'typeA' => [
+					'toType' => 'TypeA',
+					'resolve' => function() use ( $mock_connection_response ) {
+						return $mock_connection_response;
+					}
+				],
+				'typeANode' => [
+					'toType' => 'TypeB',
+					'oneToOne' => true,
+					'resolve' => function() use ( $mock_node ) {
+						return [ 'node' => $mock_node ];
+					}
+				],
+				'circular' => [
+					'toType' => 'TypeB',
+					'oneToOne' => true,
+					'resolve' => function() use ( $mock_node ) {
+						return [ 'node' => $mock_node ];
+					}
+				],
+			]
+		]);
+
+		register_graphql_fields( 'RootQuery', [
+			'typeA' => [
+				'type' => 'TypeA',
+				'resolve' => function() use ( $mock_node ) {
+					return $mock_node;
+				}
+			],
+			'typeB' => [
+				'type' => 'TypeB',
+				'resolve' => function() use ( $mock_node ) {
+					return $mock_node;
+				}
+			]
+		] );
+
+		$query = '
+		{
+		  typeA {
+		    test
+		    typeB {
+		      edges {
+		        node {
+		          test
+		        }
+		      }
+		      nodes {
+		        test
+		      }
+		    }
+		    circular {
+		      node {
+		        test
+	          }
+		    }
+		    typeBNode {
+		      node {
+		        test
+		      }
+		    }
+		  }
+		  typeB {
+		    test
+		    typeA {
+		      edges {
+		        node {
+		          test
+		        }
+		      }
+		      nodes {
+		        test
+		      }
+		    }
+		    circular {
+		      node {
+		        test
+		      }
+		    }
+		    typeANode {
+		      node {
+		        test
+		      }
+		    }
+		  }
+		}
+		';
+
+		$actual = graphql([
+			'query' => $query,
+		]);
+
+		codecept_debug( $actual );
+
+		$this->assertArrayNotHasKey( 'errors', $actual );
+
+	}
+	
 }

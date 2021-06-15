@@ -155,6 +155,8 @@ class EnqueuedStylesheetsTest extends \Codeception\TestCase\WPTestCase {
 			]
 		] );
 
+		codecept_debug( $actual );
+
 		return $actual;
 
 	}
@@ -190,6 +192,8 @@ class EnqueuedStylesheetsTest extends \Codeception\TestCase\WPTestCase {
 				'id' => $post_id,
 			]
 		] );
+
+		codecept_debug( $actual );
 
 		return $actual;
 
@@ -1561,8 +1565,8 @@ class EnqueuedStylesheetsTest extends \Codeception\TestCase\WPTestCase {
 
 		// Make sure the script is NOT enqueued on Tags
 		$actual = $this->get_tag_query( $this->tag_id );
+		codecept_debug( $actual );
 		$this->assertArrayNotHasKey( 'errors', $actual );
-		// codecept_debug( $actual );
 		$styles = $actual['data']['tag']['enqueuedStylesheets']['nodes'];
 		$handles = wp_list_pluck( $styles, 'handle' );
 		$sources = wp_list_pluck( $styles, 'src' );
