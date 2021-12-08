@@ -138,21 +138,35 @@ function register_graphql_interfaces_to_types( $interface_names, $type_names ) {
 	if ( ! empty( $type_names ) && is_array( $type_names ) && ! empty( $interface_names ) && is_array( $interface_names ) ) {
 		foreach ( $type_names as $type_name ) {
 
+			$callback = function ( $interfaces, $config, $type ) use ( $type_name, $interface_names ) {
+
+				$interfaces = is_array( $interfaces ) ? $interfaces : [];
+
+				if ( ! isset( $config['name'] ) ) {
+					return $interfaces;
+				}
+
+				if ( strtolower( $type_name ) === strtolower( $config['name'] ) ) {
+					$new_interfaces = array_unique( array_merge( $interfaces, $interface_names ) );
+					$interfaces = $new_interfaces;
+				}
+
+				return $interfaces;
+			};
+
 			// Filter the GraphQL Object Type Interface to apply the interface
 			add_filter(
-				'graphql_type_interfaces',
-				function ( $interfaces, $config ) use ( $type_name, $interface_names ) {
-
-					$interfaces = is_array( $interfaces ) ? $interfaces : [];
-
-					if ( strtolower( $type_name ) === strtolower( $config['name'] ) ) {
-						$interfaces = array_unique( array_merge( $interfaces, $interface_names ) );
-					}
-
-					return $interfaces;
-				},
+				'graphql_object_type_interfaces',
+				$callback,
 				10,
-				2
+				3
+			);
+
+			add_filter(
+				'graphql_type_interfaces',
+				$callback,
+				10,
+				3
 			);
 
 		}
