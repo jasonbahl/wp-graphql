@@ -5,13 +5,13 @@ services:
   wordpress-develop:
     volumes:
       - %PLUGIN_MOUNT_DIR%:/var/www/${LOCAL_DIR-src}/wp-content/plugins/%PLUGIN_INSTALL_DIR%
-      - %PLUGIN_MOUNT_DIR%/packages/e2e-tests/plugins:/var/www/${LOCAL_DIR-src}/wp-content/plugins/gutenberg-test-plugins
-      - %PLUGIN_MOUNT_DIR%/packages/e2e-tests/mu-plugins:/var/www/${LOCAL_DIR-src}/wp-content/mu-plugins
+      - %PLUGIN_MOUNT_DIR%/tests/e2e/plugins:/var/www/${LOCAL_DIR-src}/wp-content/plugins/wp-graphql-test-plugins
+      - %PLUGIN_MOUNT_DIR%/tests/e2e/mu-plugins:/var/www/${LOCAL_DIR-src}/wp-content/mu-plugins
   php:
     volumes:
       - %PLUGIN_MOUNT_DIR%:/var/www/${LOCAL_DIR-src}/wp-content/plugins/%PLUGIN_INSTALL_DIR%
-      - %PLUGIN_MOUNT_DIR%/packages/e2e-tests/plugins:/var/www/${LOCAL_DIR-src}/wp-content/plugins/gutenberg-test-plugins
-      - %PLUGIN_MOUNT_DIR%/packages/e2e-tests/mu-plugins:/var/www/${LOCAL_DIR-src}/wp-content/mu-plugins
+      - %PLUGIN_MOUNT_DIR%/tests/e2e/plugins:/var/www/${LOCAL_DIR-src}/wp-content/plugins/wp-graphql-test-plugins
+      - %PLUGIN_MOUNT_DIR%/packages/e2e/mu-plugins:/var/www/${LOCAL_DIR-src}/wp-content/mu-plugins
   cli:
     volumes:
       - %PLUGIN_MOUNT_DIR%:/var/www/${LOCAL_DIR-src}/wp-content/plugins/%PLUGIN_INSTALL_DIR%
