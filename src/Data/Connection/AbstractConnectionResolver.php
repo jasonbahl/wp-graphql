@@ -404,7 +404,6 @@ abstract class AbstractConnectionResolver {
 	 * @throws Exception if child class forgot to implement this.
 	 *
 	 * @since 1.9.0
-	 *
 	 */
 	public function get_ids_from_query() {
 		throw new Exception( sprintf(
@@ -630,7 +629,6 @@ abstract class AbstractConnectionResolver {
 	 * @deprecated 1.9.0
 	 *
 	 * @codeCoverageIgnore
-	 *
 	 */
 	public function get_offset() {
 		_deprecated_function( __METHOD__, '1.9.0', static::class . '::get_offset_for_cursor()' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
@@ -771,7 +769,6 @@ abstract class AbstractConnectionResolver {
 	 * @return array
 	 * @throws Exception
 	 * @uses AbstractConnectionResolver::get_ids_for_nodes()
-	 *
 	 */
 	public function get_nodes() {
 		$nodes = [];
@@ -973,9 +970,8 @@ abstract class AbstractConnectionResolver {
 		 * @param array                      $args                array of arguments input in the field as part of the GraphQL query
 		 * @param AppContext                 $context             Object containing app context that gets passed down the resolve tree
 		 * @param ResolveInfo                $info                Info about fields passed down the resolve tree
-		 *
 		 */
-		$this->query = apply_filters( 'graphql_connection_query', $this->get_query(), $this, $this->source, $this->args, $this->context, $this->info  );
+		$this->query = apply_filters( 'graphql_connection_query', $this->get_query(), $this, $this->source, $this->args, $this->context, $this->info );
 
 		/**
 		 * Filter the connection IDs
@@ -986,7 +982,6 @@ abstract class AbstractConnectionResolver {
 		 * @param array                      $args                array of arguments input in the field as part of the GraphQL query
 		 * @param AppContext                 $context             Object containing app context that gets passed down the resolve tree
 		 * @param ResolveInfo                $info                Info about fields passed down the resolve tree
-		 *
 		 */
 		$this->ids = apply_filters( 'graphql_connection_ids', $this->get_ids(), $this, $this->source, $this->args, $this->context, $this->info );
 
@@ -1021,7 +1016,7 @@ abstract class AbstractConnectionResolver {
 		 * returning the connection.
 		 */
 		return new Deferred(
-			function() {
+			function () {
 
 				if ( ! empty( $this->ids ) ) {
 					$this->loader->load_many( $this->ids );
@@ -1038,7 +1033,6 @@ abstract class AbstractConnectionResolver {
 				 * @param array                      $args                array of arguments input in the field as part of the GraphQL query
 				 * @param AppContext                 $context             Object containing app context that gets passed down the resolve tree
 				 * @param ResolveInfo                $info                Info about fields passed down the resolve tree
-				 *
 				 */
 				$this->nodes = apply_filters( 'graphql_connection_nodes', $this->get_nodes(), $this, $this->source, $this->args, $this->context, $this->info );
 

@@ -252,19 +252,19 @@ class CommentConnectionResolver extends AbstractConnectionResolver {
 		}
 
 		/**
-		 *
 		 * Filters the GraphQL args before they are used in get_query_args().
 		 *
 		 * @param array                     $args                The GraphQL args passed to the resolver.
 		 * @param CommentConnectionResolver $connection_resolver Instance of the ConnectionResolver
 		 * @param mixed                     $source              source passed down from the resolve tree
-		 * @param array                     $args                array of arguments input in the field as part of the GraphQL query
+		 * @param array                     $original_args       array of arguments input in the field as part of the GraphQL query
 		 * @param AppContext                $context             object passed down the resolve tree
 		 * @param ResolveInfo               $info                info about fields passed down the resolve tree
 
 		 * @since 1.11.0
 		 */
 		return apply_filters( 'graphql_comment_connection_args', $args, $this, $this->source, $this->args, $this->context, $this->info );
+
 	}
 
 	/**
