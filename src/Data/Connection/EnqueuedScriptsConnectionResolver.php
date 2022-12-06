@@ -1,4 +1,5 @@
 <?php
+
 namespace WPGraphQL\Data\Connection;
 
 use Exception;
@@ -15,10 +16,12 @@ class EnqueuedScriptsConnectionResolver extends AbstractConnectionResolver {
 	/**
 	 * EnqueuedScriptsConnectionResolver constructor.
 	 *
-	 * @param mixed       $source     source passed down from the resolve tree
-	 * @param array       $args       array of arguments input in the field as part of the GraphQL query
-	 * @param AppContext  $context    Object containing app context that gets passed down the resolve tree
-	 * @param ResolveInfo $info       Info about fields passed down the resolve tree
+	 * @param mixed       $source  source passed down from the resolve tree
+	 * @param array       $args    array of arguments input in the field as part of the GraphQL
+	 *                             query
+	 * @param AppContext  $context Object containing app context that gets passed down the resolve
+	 *                             tree
+	 * @param ResolveInfo $info    Info about fields passed down the resolve tree
 	 *
 	 * @throws Exception
 	 */
@@ -27,10 +30,11 @@ class EnqueuedScriptsConnectionResolver extends AbstractConnectionResolver {
 		/**
 		 * Filter the query amount to be 1000 for
 		 */
-		add_filter( 'graphql_connection_max_query_amount', function ( $max, $source, $args, $context, ResolveInfo $info ) {
+		add_filter( 'graphql_connection_max_query_amount', function( $max, $source, $args, $context, ResolveInfo $info ) {
 			if ( 'enqueuedScripts' === $info->fieldName || 'registeredScripts' === $info->fieldName ) {
 				return 1000;
 			}
+
 			return $max;
 		}, 10, 5 );
 
@@ -60,8 +64,19 @@ class EnqueuedScriptsConnectionResolver extends AbstractConnectionResolver {
 	 * {@inheritDoc}
 	 */
 	public function get_query_args() {
-		// If any args are added to filter/sort the connection
-		return [];
+		/**
+		 * Filter the query_args that should be applied to the query. This filter is applied AFTER the input args from
+		 * the GraphQL Query have been applied and has the potential to override the GraphQL Query Input Args.
+		 *
+		 * @param array       $query_args array of query_args being passed to the
+		 * @param mixed       $source     source passed down from the resolve tree
+		 * @param array       $args       array of arguments input in the field as part of the GraphQL query
+		 * @param AppContext  $context    object passed down the resolve tree
+		 * @param ResolveInfo $info       info about fields passed down the resolve tree
+		 *
+		 * @since 0.0.6
+		 */
+		return apply_filters( 'graphql_enqueued_scripts_connection_query_args', [], $this->source, $this->args, $this->context, $this->info );
 	}
 
 
@@ -70,7 +85,7 @@ class EnqueuedScriptsConnectionResolver extends AbstractConnectionResolver {
 	 *
 	 * @return array
 	 */
-	public function get_query() {
+	public function get_query(): array {
 		return $this->source->enqueuedScriptsQueue ? $this->source->enqueuedScriptsQueue : [];
 	}
 
@@ -103,6 +118,7 @@ class EnqueuedScriptsConnectionResolver extends AbstractConnectionResolver {
 	 */
 	public function is_valid_offset( $offset ) {
 		global $wp_scripts;
+
 		return isset( $wp_scripts->registered[ $offset ] );
 	}
 

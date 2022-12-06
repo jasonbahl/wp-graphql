@@ -2,6 +2,8 @@
 
 namespace WPGraphQL\Data\Connection;
 
+use GraphQL\Type\Definition\ResolveInfo;
+use WPGraphQL\AppContext;
 use WPGraphQL\Model\User;
 
 /**
@@ -46,8 +48,19 @@ class UserRoleConnectionResolver extends AbstractConnectionResolver {
 	 * {@inheritDoc}
 	 */
 	public function get_query_args() {
-		// If any args are added to filter/sort the connection
-		return [];
+		/**
+		 * Filter the query_args that should be applied to the query. This filter is applied AFTER the input args from
+		 * the GraphQL Query have been applied and has the potential to override the GraphQL Query Input Args.
+		 *
+		 * @param array       $query_args array of query_args being passed to the
+		 * @param mixed       $source     source passed down from the resolve tree
+		 * @param array       $args       array of arguments input in the field as part of the GraphQL query
+		 * @param AppContext  $context    object passed down the resolve tree
+		 * @param ResolveInfo $info       info about fields passed down the resolve tree
+		 *
+		 * @since 0.0.6
+		 */
+		return apply_filters( 'graphql_user_role_connection_query_args', [], $this->source, $this->args, $this->context, $this->info );
 	}
 
 	/**

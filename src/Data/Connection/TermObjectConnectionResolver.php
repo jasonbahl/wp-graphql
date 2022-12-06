@@ -147,9 +147,7 @@ class TermObjectConnectionResolver extends AbstractConnectionResolver {
 		 *
 		 * @since 0.0.6
 		 */
-		$query_args = apply_filters( 'graphql_term_object_connection_query_args', $query_args, $this->source, $this->args, $this->context, $this->info );
-
-		return $query_args;
+		return apply_filters( 'graphql_term_object_connection_query_args', $query_args, $this->source, $this->args, $this->context, $this->info );
 	}
 
 	/**
@@ -299,10 +297,14 @@ class TermObjectConnectionResolver extends AbstractConnectionResolver {
 		 *
 		 * @param array                     $args                The GraphQL args passed to the resolver.
 		 * @param TermObjectConnectionResolver $connection_resolver Instance of the ConnectionResolver
+		 * @param mixed                        $source              Source passed down from the resolve tree.
+		 * @param array                        $all_args            Array of arguments input in the field as part of the GraphQL query.
+		 * @param AppContext                   $context             Object containing app context that gets passed down the resolve tree.
+		 * @param ResolveInfo                  $info                Info about fields passed down the resolve tree.
 		 *
 		 * @since 1.11.0
 		 */
-		return apply_filters( 'graphql_term_object_connection_args', $args, $this );
+		return apply_filters( 'graphql_term_object_connection_args', $args, $this, $this->source, $this->args, $this->context, $this->info );
 	}
 
 	/**

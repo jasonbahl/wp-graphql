@@ -1,6 +1,9 @@
 <?php
 namespace WPGraphQL\Data\Connection;
 
+use GraphQL\Type\Definition\ResolveInfo;
+use WPGraphQL\AppContext;
+
 /**
  * Class PluginConnectionResolver - Connects plugins to other objects
  *
@@ -37,13 +40,28 @@ class PluginConnectionResolver extends AbstractConnectionResolver {
 	 * {@inheritDoc}
 	 */
 	public function get_query_args() {
+
+		$query_args = $this->args;
+
 		if ( ! empty( $this->args['where']['status'] ) ) {
-			$this->args['where']['stati'] = [ $this->args['where']['status'] ];
+			$query_args['where']['stati'] = [ $this->args['where']['status'] ];
 		} elseif ( ! empty( $this->args['where']['stati'] ) && is_string( $this->args['where']['stati'] ) ) {
-			$this->args['where']['stati'] = [ $this->args['where']['stati'] ];
+			$query_args['where']['stati'] = [ $this->args['where']['stati'] ];
 		}
 
-		return $this->args;
+		/**
+		 * Filter the query_args that should be applied to the query. This filter is applied AFTER the input args from
+		 * the GraphQL Query have been applied and has the potential to override the GraphQL Query Input Args.
+		 *
+		 * @param array       $query_args array of query_args being passed to the
+		 * @param mixed       $source     source passed down from the resolve tree
+		 * @param array       $args       array of arguments input in the field as part of the GraphQL query
+		 * @param AppContext  $context    object passed down the resolve tree
+		 * @param ResolveInfo $info       info about fields passed down the resolve tree
+		 *
+		 * @since 0.0.6
+		 */
+		return apply_filters( 'graphql_plugin_connection_query_args', $query_args, $this->source, $this->args, $this->context, $this->info );
 	}
 
 	/**

@@ -240,6 +240,7 @@ abstract class AbstractConnectionResolver {
 	 */
 	public function getArgs(): array {
 		_deprecated_function( __METHOD__, '1.11.0', static::class . '::get_args()' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+
 		return $this->get_args();
 	}
 
@@ -399,11 +400,11 @@ abstract class AbstractConnectionResolver {
 	 * instead throws an exception. Classes that extend AbstractConnectionResolver should
 	 * override this method, instead of AbstractConnectionResolver::get_ids().
 	 *
-	 * @since 1.9.0
-	 *
+	 * @return array the array of IDs.
 	 * @throws Exception if child class forgot to implement this.
 	 *
-	 * @return array the array of IDs.
+	 * @since 1.9.0
+	 *
 	 */
 	public function get_ids_from_query() {
 		throw new Exception( sprintf(
@@ -442,11 +443,11 @@ abstract class AbstractConnectionResolver {
 		 *
 		 * This filter is intentionally applied AFTER the query_args filter, as
 		 *
-		 * @param int         $max_posts  the maximum number of posts per page.
-		 * @param mixed       $source     source passed down from the resolve tree
-		 * @param array       $args       array of arguments input in the field as part of the GraphQL query
-		 * @param AppContext  $context    Object containing app context that gets passed down the resolve tree
-		 * @param ResolveInfo $info       Info about fields passed down the resolve tree
+		 * @param int         $max_posts the maximum number of posts per page.
+		 * @param mixed       $source    source passed down from the resolve tree
+		 * @param array       $args      array of arguments input in the field as part of the GraphQL query
+		 * @param AppContext  $context   Object containing app context that gets passed down the resolve tree
+		 * @param ResolveInfo $info      Info about fields passed down the resolve tree
 		 *
 		 * @since 0.0.6
 		 */
@@ -508,8 +509,12 @@ abstract class AbstractConnectionResolver {
 		 *
 		 * @param int                        $amount   the requested amount
 		 * @param AbstractConnectionResolver $resolver Instance of the connection resolver class
+		 * @param mixed                      $source   source passed down from the resolve tree
+		 * @param array                      $args     array of arguments input in the field as part of the GraphQL query
+		 * @param AppContext                 $context  Object containing app context that gets passed down the resolve tree
+		 * @param ResolveInfo                $info     Info about fields passed down the resolve tree
 		 */
-		return max( 0, apply_filters( 'graphql_connection_amount_requested', $amount_requested, $this ) );
+		return max( 0, apply_filters( 'graphql_connection_amount_requested', $amount_requested, $this, $this->source, $this->args, $this->context, $this->info ) );
 
 	}
 
@@ -543,7 +548,7 @@ abstract class AbstractConnectionResolver {
 	 * Gets the array index for the given offset.
 	 *
 	 * @param int|string|false $offset The cursor pagination offset.
-	 * @param array      $ids    The array of ids from the query.
+	 * @param array            $ids    The array of ids from the query.
 	 *
 	 * @return int|false $index The array index of the offset.
 	 */
@@ -561,9 +566,10 @@ abstract class AbstractConnectionResolver {
 	 *
 	 * The resulting array should be overfetched by 1.
 	 *
-	 * @see https://relay.dev/graphql/connections.htm#sec-Pagination-algorithm
+	 * @see   https://relay.dev/graphql/connections.htm#sec-Pagination-algorithm
 	 *
-	 * @param array $ids The array of IDs from the query to slice, ordered as expected by the GraphQL query.
+	 * @param array $ids The array of IDs from the query to slice, ordered as expected by the
+	 *                   GraphQL query.
 	 *
 	 * @since 1.9.0
 	 *
@@ -620,11 +626,11 @@ abstract class AbstractConnectionResolver {
 	 * This returns the offset to be used in the $query_args based on the $args passed to the
 	 * GraphQL query.
 	 *
+	 * @return int|mixed
 	 * @deprecated 1.9.0
 	 *
 	 * @codeCoverageIgnore
 	 *
-	 * @return int|mixed
 	 */
 	public function get_offset() {
 		_deprecated_function( __METHOD__, '1.9.0', static::class . '::get_offset_for_cursor()' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
@@ -736,7 +742,8 @@ abstract class AbstractConnectionResolver {
 	/**
 	 * Gets the IDs for the currently-paginated slice of nodes.
 	 *
-	 * We slice the array to match the amount of items that was asked for, as we over-fetched by 1 item to calculate pageInfo.
+	 * We slice the array to match the amount of items that was asked for, as we over-fetched by 1
+	 * item to calculate pageInfo.
 	 *
 	 * @used-by AbstractConnectionResolver::get_nodes()
 	 *
@@ -761,10 +768,10 @@ abstract class AbstractConnectionResolver {
 	 *
 	 * Get the nodes from the query.
 	 *
-	 * @uses AbstractConnectionResolver::get_ids_for_nodes()
-	 *
 	 * @return array
 	 * @throws Exception
+	 * @uses AbstractConnectionResolver::get_ids_for_nodes()
+	 *
 	 */
 	public function get_nodes() {
 		$nodes = [];
@@ -788,7 +795,7 @@ abstract class AbstractConnectionResolver {
 	 * If model isn't a class with a `fields` member, this function with have be overridden in
 	 * the Connection class.
 	 *
-	 * @param \WPGraphQL\Model\Model|mixed $model The model being validated
+	 * @param Model|mixed $model The model being validated
 	 *
 	 * @return bool
 	 */
@@ -837,12 +844,12 @@ abstract class AbstractConnectionResolver {
 			 *
 			 * @param array                      $edge                The edge within the connection
 			 * @param AbstractConnectionResolver $connection_resolver Instance of the connection resolver class
+			 * @param mixed                      $source              source passed down from the resolve tree
+			 * @param array                      $args                array of arguments input in the field as part of the GraphQL query
+			 * @param AppContext                 $context             Object containing app context that gets passed down the resolve tree
+			 * @param ResolveInfo                $info                Info about fields passed down the resolve tree
 			 */
-			$edge = apply_filters(
-				'graphql_connection_edge',
-				$edge,
-				$this
-			);
+			$edge = apply_filters( 'graphql_connection_edge', $edge, $this, $this->source, $this->args, $this->context, $this->info );
 
 			/**
 			 * If not empty, add the edge to the edges
@@ -897,8 +904,15 @@ abstract class AbstractConnectionResolver {
 		 *   return $page_info;
 		 *
 		 * });
+		 *
+		 * @param array                      $page_info           The edge within the connection
+		 * @param AbstractConnectionResolver $connection_resolver Instance of the connection resolver class
+		 * @param mixed                      $source              source passed down from the resolve tree
+		 * @param array                      $args                array of arguments input in the field as part of the GraphQL query
+		 * @param AppContext                 $context             Object containing app context that gets passed down the resolve tree
+		 * @param ResolveInfo                $info                Info about fields passed down the resolve tree
 		 */
-		return apply_filters( 'graphql_connection_page_info', $page_info, $this );
+		return apply_filters( 'graphql_connection_page_info', $page_info, $this, $this->source, $this->args, $this->context, $this->info );
 
 	}
 
@@ -927,8 +941,12 @@ abstract class AbstractConnectionResolver {
 		 *
 		 * @param bool                       $should_execute      Whether the connection should execute
 		 * @param AbstractConnectionResolver $connection_resolver Instance of the Connection Resolver
+		 * @param mixed                      $source              source passed down from the resolve tree
+		 * @param array                      $args                array of arguments input in the field as part of the GraphQL query
+		 * @param AppContext                 $context             Object containing app context that gets passed down the resolve tree
+		 * @param ResolveInfo                $info                Info about fields passed down the resolve tree
 		 */
-		$this->should_execute = apply_filters( 'graphql_connection_should_execute', $should_execute, $this );
+		$this->should_execute = apply_filters( 'graphql_connection_should_execute', $should_execute, $this, $this->source, $this->args, $this->context, $this->info );
 		if ( false === $this->should_execute ) {
 			return [];
 		}
@@ -951,16 +969,26 @@ abstract class AbstractConnectionResolver {
 		 *
 		 * @param mixed                      $query               Instance of the Query for the resolver
 		 * @param AbstractConnectionResolver $connection_resolver Instance of the Connection Resolver
+		 * @param mixed                      $source              source passed down from the resolve tree
+		 * @param array                      $args                array of arguments input in the field as part of the GraphQL query
+		 * @param AppContext                 $context             Object containing app context that gets passed down the resolve tree
+		 * @param ResolveInfo                $info                Info about fields passed down the resolve tree
+		 *
 		 */
-		$this->query = apply_filters( 'graphql_connection_query', $this->get_query(), $this );
+		$this->query = apply_filters( 'graphql_connection_query', $this->get_query(), $this, $this->source, $this->args, $this->context, $this->info  );
 
 		/**
 		 * Filter the connection IDs
 		 *
 		 * @param array                      $ids                 Array of IDs this connection will be resolving
 		 * @param AbstractConnectionResolver $connection_resolver Instance of the Connection Resolver
+		 * @param mixed                      $source              source passed down from the resolve tree
+		 * @param array                      $args                array of arguments input in the field as part of the GraphQL query
+		 * @param AppContext                 $context             Object containing app context that gets passed down the resolve tree
+		 * @param ResolveInfo                $info                Info about fields passed down the resolve tree
+		 *
 		 */
-		$this->ids = apply_filters( 'graphql_connection_ids', $this->get_ids(), $this );
+		$this->ids = apply_filters( 'graphql_connection_ids', $this->get_ids(), $this, $this->source, $this->args, $this->context, $this->info );
 
 		if ( empty( $this->ids ) ) {
 			return [];
@@ -993,7 +1021,7 @@ abstract class AbstractConnectionResolver {
 		 * returning the connection.
 		 */
 		return new Deferred(
-			function () {
+			function() {
 
 				if ( ! empty( $this->ids ) ) {
 					$this->loader->load_many( $this->ids );
@@ -1006,16 +1034,25 @@ abstract class AbstractConnectionResolver {
 				 *
 				 * @param array                      $nodes               The nodes in the connection
 				 * @param AbstractConnectionResolver $connection_resolver Instance of the Connection Resolver
+				 * @param mixed                      $source              source passed down from the resolve tree
+				 * @param array                      $args                array of arguments input in the field as part of the GraphQL query
+				 * @param AppContext                 $context             Object containing app context that gets passed down the resolve tree
+				 * @param ResolveInfo                $info                Info about fields passed down the resolve tree
+				 *
 				 */
-				$this->nodes = apply_filters( 'graphql_connection_nodes', $this->get_nodes(), $this );
+				$this->nodes = apply_filters( 'graphql_connection_nodes', $this->get_nodes(), $this, $this->source, $this->args, $this->context, $this->info );
 
 				/**
 				 * Filters the edges in the connection
 				 *
 				 * @param array                      $nodes               The nodes in the connection
 				 * @param AbstractConnectionResolver $connection_resolver Instance of the Connection Resolver
+				 * @param mixed                      $source              source passed down from the resolve tree
+				 * @param array                      $args                array of arguments input in the field as part of the GraphQL query
+				 * @param AppContext                 $context             Object containing app context that gets passed down the resolve tree
+				 * @param ResolveInfo                $info                Info about fields passed down the resolve tree
 				 */
-				$this->edges = apply_filters( 'graphql_connection_edges', $this->get_edges(), $this );
+				$this->edges = apply_filters( 'graphql_connection_edges', $this->get_edges(), $this, $this->source, $this->args, $this->context, $this->info );
 
 				if ( true === $this->one_to_one ) {
 					// For one to one connections, return the first edge.
@@ -1037,8 +1074,12 @@ abstract class AbstractConnectionResolver {
 				 *
 				 * @param array                      $connection          The connection data being returned
 				 * @param AbstractConnectionResolver $connection_resolver The instance of the connection resolver
+				 * @param mixed                      $source              source passed down from the resolve tree
+				 * @param array                      $args                array of arguments input in the field as part of the GraphQL query
+				 * @param AppContext                 $context             Object containing app context that gets passed down the resolve tree
+				 * @param ResolveInfo                $info                Info about fields passed down the resolve tree
 				 */
-				return apply_filters( 'graphql_connection', $connection, $this );
+				return apply_filters( 'graphql_connection', $connection, $this, $this->source, $this->args, $this->context, $this->info );
 
 			}
 		);
