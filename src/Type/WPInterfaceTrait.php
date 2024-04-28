@@ -157,29 +157,31 @@ trait WPInterfaceTrait {
 			$fields = array_merge( $fields, $diff );
 		}
 
+		// Loop through the fields to inherit undefined config values from the interface.
 		foreach ( $fields as $field_name => $field ) {
 			$new_field = $field;
 
 			if ( ! isset( $new_field['type'] ) ) {
-				if ( isset( $interface_fields[ $field_name ]['type'] ) ) {
-					$new_field['type'] = $interface_fields[ $field_name ]['type'];
-				} else {
+				// If neither the field nor the interface have a type, the field is invalid and should be removed.
+				if ( ! isset( $interface_fields[ $field_name ] ) ) {
 					unset( $fields[ $field_name ] );
+					continue;
 				}
+
+				// Inherit the type from the interface.
+				$new_field['type'] = $interface_fields[ $field_name ]['type'];
 			}
 
-			// If the field has not been unset, update the field
-			if ( isset( $fields[ $field_name ] ) ) {
-				if ( empty( $new_field['description'] ) && ! empty( $interface_fields[ $field_name ]['description'] ) ) {
-					$new_field['description'] = $interface_fields[ $field_name ]['description'];
-				}
-
-				if ( ! empty( $interface_fields[ $field_name ]['args'] ) && is_array( $interface_fields[ $field_name ]['args'] ) ) {
-					$new_field['args'] = ! empty( $new_field['args'] ) && is_array( $new_field['args'] ) ? array_merge( $interface_fields[ $field_name ]['args'], $new_field['args'] ) : $interface_fields[ $field_name ]['args'];
-				}
-
-				$fields[ $field_name ] = $new_field;
+			if ( empty( $new_field['description'] ) && ! empty( $interface_fields[ $field_name ]['description'] ) ) {
+				$new_field['description'] = $interface_fields[ $field_name ]['description'];
 			}
+
+			if ( ! empty( $interface_fields[ $field_name ]['args'] ) && is_array( $interface_fields[ $field_name ]['args'] ) ) {
+				// If both the field and the interface have args, merge them.
+				$new_field['args'] = ! empty( $new_field['args'] ) && is_array( $new_field['args'] ) ? array_merge( $interface_fields[ $field_name ]['args'], $new_field['args'] ) : $interface_fields[ $field_name ]['args'];
+			}
+
+			$fields[ $field_name ] = $new_field;
 		}
 
 		$fields = $this->prepare_fields( $fields, $config['name'], $config );
