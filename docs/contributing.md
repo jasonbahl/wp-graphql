@@ -9,7 +9,7 @@ In order to continue, you should follow steps to setup Docker running on your ma
 
 ### Build the WordPress Site
 
-The `app` docker image starts a running WordPress site with the local wp-graphql directory installed and activated. Local changes to the source code is immediately reflects in the app.
+The `app` docker image starts a running WordPress site with the local wp-graphql directory installed and activated. Local changes to the source code is immediately reflects in the app.
 
 First step, clone the source for wp-graphql from github.
 
@@ -48,7 +48,7 @@ In your web browser, open the site, [http://localhost:8091]().  And the WP admin
 
 #### Local WordPress Site With XDebug
 
-Use the environment variable USING\_XDEBUG to start the docker image and WordPress with xdebug configured to use port 9003 to communicated with your IDE.
+Use the environment variable USING_XDEBUG to start the docker image and WordPress with xdebug configured to use port 9003 to communicated with your IDE.
 
 ```shell
 export USING_XDEBUG=1
@@ -68,7 +68,7 @@ Start your IDE, like VSCode. Enable xdebug and set breakpoints. Load pages in yo
 
 See the testing page on running the unit test suite.  These instructions show how to enable xdebug for those unit tests and allow debugging in an IDE.
 
-Use the environment variable USING\_XDEBUG to run tests with xdebug configured to use port 9003 to communicated with your IDE.
+Use the environment variable USING_XDEBUG to run tests with xdebug configured to use port 9003 to communicated with your IDE.
 
 ```shell
 export USING_XDEBUG=1
@@ -81,7 +81,7 @@ Use the environment variable SUITES to specify individual test files for quicker
 
 Create or add the following configuration to your `.vscode/launch.json` in the root directory. Restart VSCode. Start the debug listener before running the app or testing images.
 
-If you have WordPress core files in a directory for local development, you can add the location to the `pathMappings` for debug step through.
+If you have WordPress core files in a directory for local development, you can add the location to the `pathMappings` for debug step through.
 
 ```json
 {
@@ -106,3 +106,25 @@ If you have WordPress core files in a directory for local development, you can a
     ]
 }
 ```
+
+### Using Cursor IDE with AI Assistance
+
+If you're using the [Cursor IDE](https://cursor.sh), you can take advantage of AI assistance specifically configured for WPGraphQL development:
+
+1. Copy the example Cursor rules file to set up AI assistance:
+   ```shell
+   cp .cursorrules.example .cursorrules
+   ```
+
+2. The `.cursorrules` file helps Cursor's AI understand:
+   - Project architecture and key concepts
+   - Common code patterns
+   - Directory structure
+   - Important files and their purposes
+   - Debug tools and development workflows
+
+3. You can customize your local `.cursorrules` file as needed. This file is gitignored and won't affect other contributors.
+
+4. Cursor will automatically read this file when you open the project - no additional configuration needed.
+
+The `.cursorrules.example` file in the repository serves as a template and is maintained by the community to help new contributors understand the project structure and common patterns.

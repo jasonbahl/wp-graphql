@@ -21,6 +21,9 @@
 
 .DS_Store
 .coveralls.yml
+.cursor
+.cursorrules
+.cursorrules.example
 .distignore
 .dockerignore
 .env
