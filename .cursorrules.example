@@ -1,3 +1,13 @@
+# Version: 1.0.0
+#
+# Versioning Strategy:
+# This file uses semantic versioning (1.x.y) independent of the WPGraphQL plugin version:
+#   - x: Major version - Breaking changes, new sections, or structural updates
+#   - y: Minor version - Content updates, new examples, or corrections
+#
+# The version number should be bumped when the .cursorrules file itself is modified,
+# not when the plugin is updated (unless those plugin updates require changes to this file).
+
 # WPGraphQL is a WordPress plugin that adds a /graphql endpoint to the WordPress site and defines a GraphQL Schema based on internal WordPress registries such as the post type, taxonomy and settings registries. It includes the Schema, resolvers and a model layer for determining access to objects before resolving them. It is extendable by using WordPress hooks and filters via the add_action and add_filter functions. It follows phpcs standards defined in .phpcs.xml.dist. It uses composer to manage external dependencies such as graphql-php. It includes user interfaces in the WordPress admin dashboard for plugin settings and the GraphiQL IDE for interacting with the GraphQL Schema and testing queries and mutations.
 
 ## Frameworks and Technologies
@@ -7,6 +17,66 @@
 - testing-framework: phpunit (codeception, wp-graphql-testcase)
 - coding-standards: phpcs
 - api: graphql
+
+## Code Standards and Static Analysis
+- standard: "PHPCS": {
+    "config": ".phpcs.xml.dist",
+    "base_standard": "WordPress-Core",
+    "key_rules": [
+      "Generic.Arrays.DisallowShortArraySyntax": false,
+      "PSR2.Classes.PropertyDeclaration": true,
+      "WordPress.Security.NonceVerification": true,
+      "WordPress.Security.ValidatedSanitizedInput": true
+    ],
+    "patterns": [
+      "Use type hints for parameters and return types",
+      "Use short array syntax []",
+      "Class files must be prefixed with 'class-'",
+      "Methods and variables should use snake_case",
+      "Classes should use PascalCase"
+    ]
+  }
+- standard: "PHPStan": {
+    "config": "phpstan.neon.dist",
+    "level": 8,
+    "key_features": [
+      "Strict type checking",
+      "Null safety analysis",
+      "Dead code detection"
+    ],
+    "common_patterns": [
+      "All methods must have return type declarations",
+      "Avoid mixed types where possible",
+      "Use null|Type instead of ?Type for nullable types",
+      "Document array shapes in PHPDoc when using array type hints"
+    ]
+  }
+
+## Code Design Principles
+- principle: "SOLID": {
+    "description": "We follow SOLID principles where possible while respecting WordPress patterns",
+    "practices": [
+      "Single Responsibility: Break classes and methods into focused, single-purpose units",
+      "Open/Closed: Design for extension through WordPress hooks and filters",
+      "Liskov Substitution: Ensure child classes can replace parent classes without breaking functionality",
+      "Interface Segregation: Keep interfaces focused and minimal",
+      "Dependency Inversion: Depend on abstractions rather than concrete implementations"
+    ]
+  }
+- principle: "Method Visibility": {
+    "patterns": [
+      "public: Required for WordPress hooks (add_action/add_filter) and API methods",
+      "protected: Use for methods that might need overriding in child classes",
+      "private: Use for internal helper methods that won't need overriding"
+    ],
+    "examples": [
+      {
+        "public": "register_fields(): Called by 'graphql_register_types' hook",
+        "protected": "get_model_data(): May need custom implementation in child classes",
+        "private": "sanitize_input(): Internal helper that won't need overriding"
+      }
+    ]
+  }
 
 ## Key Concepts
 - concept: "GraphQL Schema": "The structure that defines the types, queries, and mutations available in the WPGraphQL API"
@@ -74,6 +144,67 @@ add_action( 'graphql_register_types', function( $type_registry ) {
 });
 ```
 
+## Standard-Compliant Code Examples
+```php
+/**
+ * Example of a properly formatted class following PHPCS and PHPStan standards
+ */
+class Example_Type {
+    /**
+     * Array of items
+     * 
+     * @var array<string, mixed>
+     */
+    private array $items = [];
+
+    /**
+     * Get an item by key
+     *
+     * @param string $key The item key
+     * @return mixed|null
+     */
+    public function get_item( string $key ) {
+        return $this->items[$key] ?? null;
+    }
+
+    /**
+     * Register GraphQL fields following WPGraphQL patterns
+     *
+     * @param \WPGraphQL\Registry\TypeRegistry $type_registry The Type Registry instance
+     * @return void
+     */
+    public function register_fields( TypeRegistry $type_registry ): void {
+        register_graphql_field( 'RootQuery', 'example', [
+            'type' => 'String',
+            'description' => __( 'An example field', 'wp-graphql' ),
+            'args' => [
+                'input' => [
+                    'type' => 'String',
+                    'description' => __( 'Input value', 'wp-graphql' ),
+                ],
+            ],
+            'resolve' => function( $root, array $args, AppContext $context, ResolveInfo $info ): ?string {
+                // Properly formatted resolver with security checks
+                if ( ! current_user_can( 'read' ) ) {
+                    throw new UserError( __( 'Sorry, you are not allowed to access this data', 'wp-graphql' ) );
+                }
+
+                return ! empty( $args['input'] ) ? sanitize_text_field( $args['input'] ) : null;
+            },
+        ]);
+    }
+}
+```
+
+This example demonstrates:
+- Proper PHPDoc formatting
+- Type hints and return types
+- Security checks in resolvers
+- Input sanitization
+- Error handling
+- Null safety
+- WordPress coding standards compliance
+
 ## Key Directories
 - directory: "src/": "Core plugin source code"
 - directory: "includes/": "Plugin includes and utilities"
@@ -98,7 +229,149 @@ add_action( 'graphql_register_types', function( $type_registry ) {
 - file: "docker-compose.yml": "Docker environment configuration"
 - file: ".wordpress-org/blueprints/blueprint.json": "Blueprint for running WPGraphQL in WordPress Playground, a WASM environment that runs WordPress fully in the browser"
 
+## Common Workflows
+- workflow: "Extending Schema": "Use 'graphql_register_types' action hook to register new types and fields"
+- workflow: "Access Control": "Implement Model classes to handle data access and authorization"
+- workflow: "Testing": "Create wpunit tests in tests/wpunit directory following existing patterns"
+- workflow: "Documentation": "Update both inline docblocks and markdown docs in docs/ directory"
+
 ## Debug Tools
-- concept: "GraphQL Debug Mode": "Enable via WPGraphQL Settings or define('GRAPHQL_DEBUG', true)"
-- concept: "Query Logs": "Logs the SQL queries to fulfil a graphql request. Requires Query Monitor to be active. Enabled via WPGraphQL Settings and available in GraphiQL when debug mode is enabled"
-- concept: "Query Tracing": "Shows trace data for resolvers (i.e. timing for execution). Enabled via WPGraphQL Settings and available in GraphiQL when debug mode is enabled"
+- tool: "GraphQL Debug Mode": {
+    "description": "Enable detailed error messages and stack traces",
+    "activation": "WPGraphQL Settings or define('GRAPHQL_DEBUG', true)",
+    "usage": "Helpful for development and troubleshooting resolvers"
+  }
+- tool: "Query Logs": {
+    "description": "Log SQL queries for GraphQL requests",
+    "requirements": "Query Monitor plugin",
+    "activation": "WPGraphQL Settings",
+    "location": "Available in GraphiQL when debug mode is enabled"
+  }
+- tool: "Query Tracing": {
+    "description": "Timing data for resolver execution",
+    "activation": "WPGraphQL Settings",
+    "location": "Available in GraphiQL when debug mode is enabled"
+  }
+
+## Testing Patterns
+- pattern: "Test Structure": {
+    "setup": "Use $this->factory()->post->create() for test data",
+    "queries": "Define GraphQL queries within the test methods or as class properties",
+    "assertions": "Use assertQuerySuccessful() and assertArrayHasKey()",
+    "cleanup": {
+      "data": "Clean up created data after tests using tearDown() or within test methods",
+      "schema": "Use $this->clearSchema() when modifying the schema",
+      "database": "WordPress resets the database between test classes"
+    }
+  }
+- pattern: "Test Data": {
+    "factory": "Use WP_UnitTest_Factory for creating test content",
+    "fixtures": "Place shared test data in tests/_data/",
+    "best_practices": [
+      "Delete created posts, terms, and users after tests",
+      "Clean up any custom post types or taxonomies registered during tests",
+      "Reset any modified WordPress options"
+    ]
+  }
+- pattern: "Test Examples": {
+    "mutation_test": "See tests/wpunit/MediaItemMutationsTest.php",
+    "query_test": "See tests/wpunit/PostObjectQueriesTest.php",
+    "connection_test": "See tests/wpunit/PostObjectConnectionQueriesTest.php",
+    "acf_test": "See tests/wpunit/AcfTest.php"
+  }
+
+## Code Organization Patterns
+- pattern: "Connection Resolvers": {
+    "namespace": "WPGraphQL\\Data\\Connection",
+    "naming": "EntityNameConnectionResolver",
+    "extends": "AbstractConnectionResolver<QueryClass>",
+    "key_methods": [
+      "get_ids_from_query(): Return array of IDs/slugs",
+      "prepare_query_args(): Prepare WP_Query args",
+      "is_valid_offset(): Validate cursor node exists",
+      "should_execute(): Check permissions"
+    ]
+  }
+- pattern: "Cursor Classes": {
+    "namespace": "WPGraphQL\\Data\\Cursor",
+    "naming": "EntityNameCursor",
+    "extends": "AbstractCursor",
+    "key_methods": [
+      "get_cursor_node(): Get WP object for cursor",
+      "get_where(): Build WHERE clause",
+      "to_sql(): Generate final SQL"
+    ]
+  }
+
+## Type Hints and DocBlocks
+- pattern: "Type Declarations": {
+    "templates": "Use @template for generic types",
+    "arrays": "Use array<key,value> syntax for array shapes",
+    "nullables": "Use ?Type for nullable returns",
+    "docblock_tags": [
+      "@var for property types",
+      "@param for parameters",
+      "@return for return types",
+      "@throws for exceptions",
+      "@deprecated for deprecated features"
+    ]
+  }
+
+## Error Handling
+- pattern: "Validation": {
+    "user_errors": "Throw UserError for client-safe messages",
+    "invariant": "Throw InvariantViolation for programming errors",
+    "null_checks": "Use null coalescing (??) for safe access",
+    "type_checks": "Use instanceof for type validation"
+  }
+
+## Deprecation
+- pattern: "Deprecating Code": {
+    "method": "Use _deprecated_function()",
+    "notice": "Include migration path in message",
+    "docblock": "Add @deprecated tag with version",
+    "codeCoverage": "Add @codeCoverageIgnore"
+  }
+
+## Filter Patterns
+- pattern: "WordPress Filters": {
+    "naming": "graphql_*",
+    "arguments": [
+      "First arg is value being filtered",
+      "Last args are context objects ($source, $args, $context, $info)"
+    ],
+    "sanitization": [
+      "Use esc_sql() for SQL values",
+      "Use wp_parse_slug_list() for slugs",
+      "Use sanitize_text_field() for text"
+    ]
+  }
+
+## WordPress Function Preferences
+- pattern: "WordPress Functions": {
+    "encoding": {
+      "wp_json_encode() over json_encode()",
+      "wp_parse_url() over parse_url()",
+      "wp_parse_args() over array_merge() for defaults"
+    },
+    "sanitization": {
+      "sanitize_text_field() over strip_tags()",
+      "wp_kses_post() over strip_tags() for HTML",
+      "sanitize_key() over preg_replace() for keys"
+    },
+    "escaping": {
+      "esc_html() over htmlspecialchars()",
+      "esc_url() over urlencode()",
+      "esc_attr() over htmlspecialchars() for attributes"
+    },
+    "arrays": {
+      "wp_list_pluck() over array_column()",
+      "wp_list_filter() over array_filter()",
+      "wp_parse_slug_list() over explode() for slugs"
+    },
+    "formatting": {
+      "wp_trim_words() over substr()",
+      "sanitize_title() over strtolower()/str_replace()",
+      "wp_slash() over addslashes()"
+    }
+  }
