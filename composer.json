@@ -83,7 +83,13 @@
 		"build-test": "@docker-build -t",
 		"run-app": "@docker-run -a",
 		"run-test": "@docker-run -t",
-		"lint": "vendor/bin/phpcs",
+		"lint": "phpcs",
+		"lint-fix": "phpcbf",
+		"stan": "phpstan analyze",
+		"check": [
+			"@lint",
+			"@stan"
+		],
 		"phpcs-i": [
 			"php ./vendor/bin/phpcs -i"
 		],

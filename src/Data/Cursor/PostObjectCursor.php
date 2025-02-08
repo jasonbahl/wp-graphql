@@ -2,10 +2,15 @@
 
 namespace WPGraphQL\Data\Cursor;
 
+use GraphQL\Error\UserError;
+
 /**
  * Post Cursor
  *
- * This class generates the SQL AND operators for cursor based pagination for posts
+ * This class generates SQL AND operators for cursor-based pagination of posts.
+ * It handles ordering by post fields, meta values, and custom fields.
+ *
+ * @since 1.9.0
  *
  * @package WPGraphQL\Data\Cursor
  */
@@ -223,12 +228,23 @@ class PostObjectCursor extends AbstractCursor {
 	 *
 	 * @param string $meta_key post meta key
 	 * @param string $order    The comparison string
-	 *
+	 * @throws \GraphQL\Error\UserError If meta value cannot be retrieved.
 	 * @return void
 	 */
 	private function compare_with_meta_field( string $meta_key, string $order ) {
 		$meta_type  = $this->get_query_var( 'meta_type' );
 		$meta_value = get_post_meta( $this->cursor_offset, $meta_key, true );
+
+		// Add error handling for missing meta
+		if ( empty( $meta_value ) && ! is_numeric( $meta_value ) ) {
+			throw new UserError(
+				sprintf(
+					/* translators: %s: meta key */
+					esc_html__( 'Meta key %s not found for cursor comparison', 'wp-graphql' ),
+					esc_html( $meta_key )
+				)
+			);
+		}
 
 		$key = "{$this->wpdb->postmeta}.meta_value";
 

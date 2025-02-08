@@ -5,7 +5,7 @@ namespace WPGraphQL\Data\Connection;
 use WPGraphQL\Model\User;
 
 /**
- * Class PluginConnectionResolver - Connects plugins to other objects
+ * Class UserRoleConnectionResolver - Connects user roles to other objects
  *
  * @package WPGraphQL\Data\Resolvers
  * @since   0.0.5
@@ -16,11 +16,10 @@ class UserRoleConnectionResolver extends AbstractConnectionResolver {
 	 * {@inheritDoc}
 	 */
 	public function get_ids_from_query() {
-
 		// Given a list of role slugs
 		$query_args = $this->get_query_args();
 		if ( isset( $query_args['slugIn'] ) ) {
-			return $query_args['slugIn'];
+			return wp_parse_slug_list( $query_args['slugIn'] );
 		}
 
 		$ids     = [];

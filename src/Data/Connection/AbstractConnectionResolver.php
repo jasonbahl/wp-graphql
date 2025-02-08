@@ -21,6 +21,9 @@ use WPGraphQL\Model\Post;
  * E.g. `@extends \WPGraphQL\Data\Connection\AbstractConnectionResolver<\WP_Term_Query>`
  *
  * @template TQueryClass
+ * @property-read array<string,mixed> $args Filterable by graphql_connection_args
+ * @property-read \WPGraphQL\AppContext $context The app context
+ * @property-read \GraphQL\Type\Definition\ResolveInfo $info Info about fields
  */
 abstract class AbstractConnectionResolver {
 	/**
@@ -42,7 +45,7 @@ abstract class AbstractConnectionResolver {
 	 *
 	 * Filterable by `graphql_connection_args`.
 	 *
-	 * @var ?array<string,mixed>
+	 * @var array<string,mixed>
 	 */
 	protected $args;
 
@@ -587,7 +590,6 @@ abstract class AbstractConnectionResolver {
 		if ( ! isset( $this->args ) ) {
 			$this->args = $this->prepare_args( $this->get_unfiltered_args() );
 		}
-
 		return $this->args;
 	}
 

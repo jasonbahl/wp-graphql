@@ -53,8 +53,8 @@ function graphql_format_field_name( $field_name ) {
 		return $field_name;
 	}
 
-	// Then convert string to camelCase.
-	return str_replace( ' ', '', lcfirst( ucwords( $formatted_field_name ) ) );
+	// Then convert string to camelCase
+	return lcfirst( str_replace( ' ', '', ucwords( $formatted_field_name ) ) );
 }
 
 /**

@@ -26,15 +26,35 @@
       "Generic.Arrays.DisallowShortArraySyntax": false,
       "PSR2.Classes.PropertyDeclaration": true,
       "WordPress.Security.NonceVerification": true,
-      "WordPress.Security.ValidatedSanitizedInput": true
+      "WordPress.Security.ValidatedSanitizedInput": true,
+      "WordPress.Security.EscapeOutput": true,
+      "Squiz.Commenting.FunctionComment": true,
+      "Squiz.WhiteSpace.SuperfluousWhitespace": true
     ],
     "patterns": [
       "Use type hints for parameters and return types",
       "Use short array syntax []",
       "Class files must be prefixed with 'class-'",
       "Methods and variables should use snake_case",
-      "Classes should use PascalCase"
-    ]
+      "Classes should use PascalCase",
+      "DocBlock @throws tags must end with period",
+      "No trailing whitespace",
+      "All output must be escaped",
+      "Use esc_html__ for translatable strings with HTML",
+      "Use esc_html for variable output"
+    ],
+    "examples": {
+      "escaping": [
+        "esc_html__( 'My string', 'wp-graphql' )",
+        "esc_html( $variable )",
+        "sprintf( esc_html__( 'Value: %s', 'wp-graphql' ), esc_html( $value ) )"
+      ],
+      "docblocks": [
+        "@throws \\Exception Invalid input provided.",
+        "@param string $key The key to validate.",
+        "@return void"
+      ]
+    }
   }
 - standard: "PHPStan": {
     "config": "phpstan.neon.dist",
@@ -48,8 +68,22 @@
       "All methods must have return type declarations",
       "Avoid mixed types where possible",
       "Use null|Type instead of ?Type for nullable types",
-      "Document array shapes in PHPDoc when using array type hints"
-    ]
+      "Document array shapes in PHPDoc when using array type hints",
+      "PHPDoc types must exactly match method signatures",
+      "Use array<string,mixed>|null for nullable arrays"
+    ],
+    "examples": {
+      "type_consistency": [
+        "Method param: array<string,mixed>|null must match @param",
+        "Method return: array<string,mixed>|null must match @return",
+        "Property types: @var must match property declaration"
+      ],
+      "nullable_arrays": [
+        "@param array<string,mixed>|null $args",
+        "@return array<string,mixed>|null",
+        "@var array<string,mixed>|null $property"
+      ]
+    }
   }
 
 ## Code Design Principles
@@ -152,7 +186,7 @@ add_action( 'graphql_register_types', function( $type_registry ) {
 class Example_Type {
     /**
      * Array of items
-     * 
+     *
      * @var array<string, mixed>
      */
     private array $items = [];

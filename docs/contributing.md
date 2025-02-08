@@ -128,3 +128,24 @@ If you're using the [Cursor IDE](https://cursor.sh), you can take advantage of A
 4. Cursor will automatically read this file when you open the project - no additional configuration needed.
 
 The `.cursorrules.example` file in the repository serves as a template and is maintained by the community to help new contributors understand the project structure and common patterns.
+
+## IDE Configuration
+
+For VS Code users, we recommend the following settings in `.vscode/settings.json`:
+
+```json
+{
+    "phpsab.standard": "${workspaceFolder}/.phpcs.xml.dist",
+    "phpsab.executablePathCS": "${workspaceFolder}/vendor/bin/phpcs",
+    "phpsab.executablePathCBF": "${workspaceFolder}/vendor/bin/phpcbf",
+    "phpsab.allowedAutoRulesets": [
+        ".phpcs.xml.dist",
+        "phpcs.xml.dist",
+        "phpcs.xml",
+        "ruleset.xml"
+    ],
+    "editor.formatOnSave": true,
+    "editor.trimTrailingWhitespace": true,
+    "files.trimTrailingWhitespace": true
+}
+```
