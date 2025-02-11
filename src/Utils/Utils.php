@@ -337,6 +337,7 @@ class Utils {
 	 * @return int|false
 	 */
 	public static function get_database_id_from_id( $id ) {
+
 		// If we already have the database ID, send it back as an integer.
 		if ( is_numeric( $id ) ) {
 			return absint( $id );
@@ -344,7 +345,7 @@ class Utils {
 
 		$id_parts = Relay::fromGlobalId( $id );
 
-		return ! empty( $id_parts['id'] ) && is_numeric( $id_parts['id'] ) ? absint( $id_parts['id'] ) : false;
+		return isset( $id_parts['id'] ) && is_numeric( $id_parts['id'] ) ? absint( $id_parts['id'] ) : false;
 	}
 
 	/**

@@ -51,14 +51,14 @@ class TermObjectMutation {
 		 * If the parentId argument was entered, we need to validate that it's actually a legit term that can
 		 * be set as a parent
 		 */
-		if ( ! empty( $input['parentId'] ) ) {
+		if ( isset( $input['parentId'] ) ) {
 
 			/**
 			 * Convert parent ID to WordPress ID
 			 */
 			$parent_id = Utils::get_database_id_from_id( $input['parentId'] );
 
-			if ( empty( $parent_id ) ) {
+			if ( false === $parent_id ) {
 				throw new UserError( esc_html__( 'The parent ID is not a valid ID', 'wp-graphql' ) );
 			}
 
@@ -67,11 +67,11 @@ class TermObjectMutation {
 			 */
 			$parent_term = get_term( absint( $parent_id ), $taxonomy->name );
 
-			if ( ! $parent_term instanceof \WP_Term ) {
+			if ( 0 !== $parent_id && ! $parent_term instanceof \WP_Term ) {
 				throw new UserError( esc_html__( 'The parent does not exist', 'wp-graphql' ) );
 			}
 
-			$insert_args['parent'] = $parent_term->term_id;
+			$insert_args['parent'] = 0 !== $parent_id ? $parent_term->term_id : 0;
 		}
 
 		/**
