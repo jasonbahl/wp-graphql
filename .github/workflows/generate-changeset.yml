@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Need full history to scan changed files
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -23,18 +23,44 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Generate Changeset
+      - name: Create changeset
         run: |
-          # Configure git to get last commit info
-          git config user.name "GitHub Action"
-          git config user.email "actions@github.com"
+          # Extract PR info
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          PR_BODY="${{ github.event.pull_request.body }}"
 
-          # Run the changeset script
-          npm run changeset
+          # Determine change type from PR title
+          if [[ $PR_TITLE =~ ^BREAKING ]]; then
+            CHANGE_TYPE="major"
+          elif [[ $PR_TITLE =~ ^feat: ]]; then
+            CHANGE_TYPE="minor"
+          else
+            CHANGE_TYPE="patch"
+          fi
+
+          # Create changeset file
+          npx changeset add --empty
+
+          # Get the created changeset file
+          CHANGESET_FILE=$(ls -t .changeset/*.md | head -n1)
+
+          # Write changeset content
+          echo "---" > "$CHANGESET_FILE"
+          echo "type: $CHANGE_TYPE" >> "$CHANGESET_FILE"
+
+          # Extract upgrade notes if they exist
+          if [[ $PR_BODY =~ "Upgrade Notes"[[:space:]]*-{3,}[[:space:]]*([^#]*) ]]; then
+            UPGRADE_NOTES="${BASH_REMATCH[1]}"
+            echo -e "\n---\n\n$PR_TITLE\n\nUpgrade Notes:\n$UPGRADE_NOTES" >> "$CHANGESET_FILE"
+          else
+            echo -e "\n---\n\n$PR_TITLE" >> "$CHANGESET_FILE"
+          fi
 
           # Commit and push if changes were made
           if [[ -n $(git status --porcelain) ]]; then
-            git add .changesets/
+            git config user.name "GitHub Action"
+            git config user.email "actions@github.com"
+            git add .changeset/
             git commit -m "chore: add changeset for PR #${{ github.event.pull_request.number }}"
             git push
           fi

@@ -1,0 +1,54 @@
+name: Beta Release
+
+on:
+  push:
+    branches:
+      - next-major
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Beta version (e.g., beta.1)'
+        required: true
+
+jobs:
+  beta-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Configure Git
+        run: |
+          git config user.name "GitHub Action"
+          git config user.email "actions@github.com"
+
+      - name: Create Beta Release
+        run: |
+          # Enter pre mode if not already
+          if ! grep -q "\"mode\": \"pre\"" .changeset/pre.json 2>/dev/null; then
+            npm run changeset pre enter beta
+          fi
+
+          # Version and tag
+          npm run version-packages
+          git push --follow-tags
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          prerelease: true
+          generate_release_notes: true
+          files: plugin-build/wp-graphql.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
