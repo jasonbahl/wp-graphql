@@ -11,10 +11,10 @@ Thanks for sending a pull request! Please make sure you click the link above to 
 
 -->
 
+
 What does this implement/fix? Explain your changes.
 ---------------------------------------------------
 …
-
 
 Does this close any currently open issues?
 ------------------------------------------
@@ -23,16 +23,18 @@ Does this close any currently open issues?
 ### see: https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword
 -->
 
+Upgrade Notes
+---------------------------------------------------
+<!-- If this PR requires special notes for upgrading, describe them here. -->
+<!-- Leave empty if no upgrade notes are needed. -->
 
 Any relevant logs, error output, GraphiQL screenshots, etc?
 -------------------------------------
-<!-- (If it’s long, please paste to https://ghostbin.com/ and insert the link here.) -->
-
+<!-- (If it's long, please paste to https://ghostbin.com/ and insert the link here.) -->
 
 Any other comments?
 -------------------
 …
-
 
 Where has this been tested?
 ---------------------------

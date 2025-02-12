@@ -1,0 +1,40 @@
+name: Generate Changeset
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  generate-changeset:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Need full history to scan changed files
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Changeset
+        run: |
+          # Configure git to get last commit info
+          git config user.name "GitHub Action"
+          git config user.email "actions@github.com"
+
+          # Run the changeset script
+          npm run changeset
+
+          # Commit and push if changes were made
+          if [[ -n $(git status --porcelain) ]]; then
+            git add .changesets/
+            git commit -m "chore: add changeset for PR #${{ github.event.pull_request.number }}"
+            git push
+          fi

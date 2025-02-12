@@ -25,7 +25,8 @@
     "lint:js:fix": "wp-scripts lint-js --fix ./src",
     "lint:js:src": "wp-scripts lint-js ./src",
     "wp-env": "wp-env",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "changeset": "node scripts/generate-changeset.js"
   },
   "repository": {
     "type": "git",
@@ -76,7 +77,9 @@
     "husky": "^9.1.7",
     "lint-staged": "^15.4.3",
     "sort-package-json": "^2.14.0",
-    "webpack-remove-empty-scripts": "^1.0.4"
+    "webpack-remove-empty-scripts": "^1.0.4",
+    "fs": "^0.0.1-security",
+    "path": "^0.12.7"
   },
   "lint-staged": {
     "package.json": "sort-package-json"
