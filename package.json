@@ -1,7 +1,7 @@
 {
   "name": "wp-graphql",
   "private": true,
-  "version": "1.22.0",
+  "version": "1.32.0",
   "description": "GraphQL API for WordPress",
   "homepage": "https://github.com/wp-graphql/wp-graphql#readme",
   "author": "WPGraphQL <info@wpgraphql.com> (https://www.wpgraphql.com)",
@@ -27,7 +27,8 @@
     "wp-env": "wp-env",
     "prepare": "husky install",
     "changeset": "changeset",
-    "version-packages": "changeset version && node scripts/version-bump.js",
+    "check-versions": "node scripts/check-versions.js",
+    "version-packages": "npm run check-versions && changeset version && node scripts/version-bump.js",
     "release": "changeset tag"
   },
   "repository": {
