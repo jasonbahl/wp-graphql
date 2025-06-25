@@ -38,7 +38,7 @@ class PostTypeLoader extends AbstractDataLoader {
 
 		foreach ( $keys as $key ) {
 			if ( isset( $post_types[ $key ] ) ) {
-				$loaded[ $key ] = $post_types[ $key ];
+				$loaded[ $key ] = get_post_type_object( $key );
 			} else {
 				$loaded[ $key ] = null;
 			}

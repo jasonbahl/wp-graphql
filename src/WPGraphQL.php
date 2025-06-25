@@ -9,6 +9,7 @@ use WPGraphQL\Admin\Admin;
 use WPGraphQL\AppContext;
 use WPGraphQL\Registry\SchemaRegistry;
 use WPGraphQL\Registry\TypeRegistry;
+use WPGraphQL\Registry\DirectiveRegistry;
 use WPGraphQL\Router;
 use WPGraphQL\Type\WPObjectType;
 use WPGraphQL\Utils\InstrumentSchema;
@@ -42,6 +43,13 @@ final class WPGraphQL {
 	 * @var ?\WPGraphQL\Registry\TypeRegistry $type_registry The registry that holds all GraphQL Types
 	 */
 	protected static $type_registry;
+
+	/**
+	 * Holds the DirectiveRegistry instance
+	 *
+	 * @var ?\WPGraphQL\Registry\DirectiveRegistry $directive_registry The registry that holds all GraphQL Directives
+	 */
+	protected static $directive_registry;
 
 	/**
 	 * Stores an array of allowed post types
@@ -905,30 +913,35 @@ final class WPGraphQL {
 	 * @throws \Exception
 	 */
 	public static function get_type_registry() {
-		if ( ! isset( self::$type_registry ) ) {
-			$type_registry = new TypeRegistry();
-
-			/**
-			 * Generate & Filter the schema.
-			 *
-			 * @param \WPGraphQL\Registry\TypeRegistry $type_registry The TypeRegistry for the API
-			 * @param \WPGraphQL\AppContext $app_context Object The AppContext object containing all of the
-			 * information about the context we know at this point
-			 *
-			 * @since 0.0.5
-			 */
-			self::$type_registry = apply_filters( 'graphql_type_registry', $type_registry, self::get_app_context() );
+		if ( null === self::$type_registry ) {
+			self::$type_registry = new TypeRegistry();
 		}
 
 		/**
-		 * Fire an action when the Type Registry is returned
+		 * Return the instance of the TypeRegistry
+		 *
+		 * @param \WPGraphQL\Registry\TypeRegistry $type_registry
 		 */
-		do_action( 'graphql_get_type_registry', self::$type_registry );
+		return apply_filters( 'graphql_type_registry', self::$type_registry );
+	}
+
+	/**
+	 * Returns the instance of the DirectiveRegistry
+	 *
+	 * @return \WPGraphQL\Registry\DirectiveRegistry
+	 * @since 1.18.0
+	 */
+	public static function get_directive_registry() {
+		if ( null === self::$directive_registry ) {
+			self::$directive_registry = new \WPGraphQL\Registry\DirectiveRegistry();
+		}
 
 		/**
-		 * Return the Schema after applying filters
+		 * Return the instance of the DirectiveRegistry
+		 *
+		 * @param \WPGraphQL\Registry\DirectiveRegistry $directive_registry
 		 */
-		return self::$type_registry;
+		return apply_filters( 'graphql_directive_registry', self::$directive_registry );
 	}
 
 	/**

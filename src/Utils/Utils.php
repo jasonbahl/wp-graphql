@@ -3,6 +3,10 @@
 namespace WPGraphQL\Utils;
 
 use GraphQLRelay\Relay;
+use GraphQL\Type\Definition\Directive;
+use GraphQL\Type\Definition\FieldDefinition;
+use GraphQL\Language\AST\DirectiveNode;
+use GraphQL\Utils\AST;
 
 class Utils {
 
@@ -388,5 +392,45 @@ class Utils {
 		$post_id = ! empty( $revisions ) ? array_values( $revisions )[0] : $post_id;
 
 		return is_object( $post_id ) ? (int) $post_id->ID : (int) $post_id;
+	}
+
+	/**
+	 * Given a directive definition and a directive node, this returns the arguments
+	 * passed to the directive in the query.
+	 *
+	 * @param \GraphQL\Type\Definition\Directive           $directive      The directive definition.
+	 * @param \GraphQL\Language\AST\DirectiveNode          $directive_node The directive node from the AST.
+	 * @param array<string, mixed>|null                    $variable_values The variable values from the request.
+	 *
+	 * @return array<string, mixed>
+	 */
+	public static function get_directive_args( Directive $directive, DirectiveNode $directive_node, ?array $variable_values = [] ): array {
+		$args = [];
+
+		if ( empty( $directive_node->arguments ) || empty( $directive->args ) ) {
+			return $args;
+		}
+
+		$arg_nodes = $directive_node->arguments;
+		$arg_map = [];
+		foreach ( $arg_nodes as $arg ) {
+			$arg_map[ $arg->name->value ] = $arg->value;
+		}
+
+		foreach ( $directive->args as $arg_def ) {
+			$name = $arg_def->name;
+			$value_node = $arg_map[ $name ] ?? null;
+
+			if ( null === $value_node ) {
+				if ( null !== $arg_def->defaultValue ) {
+					$args[ $name ] = $arg_def->defaultValue;
+				}
+				continue;
+			}
+
+			$args[ $name ] = AST::valueFromAST( $value_node, $arg_def->getType(), $variable_values );
+		}
+
+		return $args;
 	}
 }

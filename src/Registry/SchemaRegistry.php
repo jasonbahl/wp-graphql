@@ -2,6 +2,7 @@
 
 namespace WPGraphQL\Registry;
 
+use GraphQL\GraphQL;
 use GraphQL\Type\SchemaConfig;
 use WPGraphQL\WPSchema;
 
@@ -35,6 +36,11 @@ class SchemaRegistry {
 	public function get_schema() {
 		$this->type_registry->init();
 
+		$directive_registry = \WPGraphQL::get_directive_registry();
+		$directive_registry->init();
+		$custom_directives = $directive_registry->get_directives();
+		$directives = array_merge( GraphQL::getStandardDirectives(), $custom_directives );
+
 		$schema_config = SchemaConfig::create()
 			->setQuery(
 				function () {
@@ -64,7 +70,8 @@ class SchemaRegistry {
 					return $type;
 				}
 			)
-			->setTypes( fn() => $this->type_registry->get_types() );
+			->setTypes( fn() => $this->type_registry->get_types() )
+			->setDirectives( $directives );
 
 		/**
 		 * Create a new instance of the Schema

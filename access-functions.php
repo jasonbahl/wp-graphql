@@ -540,6 +540,24 @@ function register_graphql_mutation( string $mutation_name, array $config ): void
 }
 
 /**
+ * Given a directive name and config array, this adds a directive to the Schema
+ *
+ * @param string              $directive_name The name of the Directive to register
+ * @param array<string,mixed> $config         The config for the directive
+ *
+ * @since next-version
+ */
+function register_graphql_directive( string $directive_name, array $config ): void {
+	add_action(
+		get_graphql_register_action(),
+		static function () use ( $directive_name, $config ): void {
+			\WPGraphQL::get_directive_registry()->register_directive( $directive_name, $config );
+		},
+		10
+	);
+}
+
+/**
  * Given a config array for a custom Scalar, this registers a Scalar for use in the Schema
  *
  * @param string              $type_name The name of the Type to register
