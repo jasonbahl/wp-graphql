@@ -38,6 +38,9 @@ class DirectiveRegistry {
         // Query execution hooks
         add_action( 'graphql_before_execute', [ $this, 'before_execute_query_directives' ], 10, 1 );
         add_action( 'graphql_after_execute', [ $this, 'after_execute_query_directives' ], 10, 2 );
+
+        // Field definition processing hook
+        add_filter( 'graphql_field_config', [ $this, 'apply_field_definition_directives' ], 10, 4 );
     }
 
     /**
@@ -68,7 +71,8 @@ class DirectiveRegistry {
                     $directive_config['resolve_field'],
                     $directive_config['after_resolve_field'],
                     $directive_config['before_execute_query'],
-                    $directive_config['after_execute_query']
+                    $directive_config['after_execute_query'],
+                    $directive_config['field_definition']
                 );
 
                 foreach ( $locations_with_callbacks as $location => $callbacks ) {
@@ -78,10 +82,8 @@ class DirectiveRegistry {
                         continue;
                     }
 
-                    // For now, FIELD and FIELD_DEFINITION are treated the same, as directives
-                    // can only be executed on Fields in queries, not on field definitions in the Schema.
-                    // The directive hook system is tied to field resolution during query execution.
-                    if ( 'FIELD' === $location || 'FIELD_DEFINITION' === $location ) {
+                    // FIELD directives are executed during query resolution
+                    if ( 'FIELD' === $location ) {
                         if ( isset( $callbacks['before_resolve'] ) ) {
                             $directive_config['before_resolve_field'] = $callbacks['before_resolve'];
                         }
@@ -90,6 +92,13 @@ class DirectiveRegistry {
                         }
                         if ( isset( $callbacks['after_resolve'] ) ) {
                             $directive_config['after_resolve_field'] = $callbacks['after_resolve'];
+                        }
+                    }
+
+                    // FIELD_DEFINITION directives are executed during field registration
+                    if ( 'FIELD_DEFINITION' === $location ) {
+                        if ( isset( $callbacks['apply'] ) ) {
+                            $directive_config['field_definition'] = $callbacks['apply'];
                         }
                     }
 
@@ -436,5 +445,49 @@ class DirectiveRegistry {
         }
 
         return true;
+    }
+
+    /**
+     * Apply FIELD_DEFINITION directives to modify field config during registration
+     *
+     * @param array<string,mixed> $field_config  The field configuration
+     * @param string              $field_name    The field name
+     * @param string              $type_name     The type name
+     * @param array<string,mixed> $type_config   The type configuration
+     * @return array<string,mixed>
+     */
+    public function apply_field_definition_directives( array $field_config, string $field_name, string $type_name, array $type_config ): array {
+        if ( empty( $field_config['directives'] ) || ! is_array( $field_config['directives'] ) ) {
+            return $field_config;
+        }
+
+        foreach ( $field_config['directives'] as $directive_name ) {
+            if ( ! isset( $this->directives[ $directive_name ] ) ) {
+                continue;
+            }
+
+            $directive = $this->directives[ $directive_name ];
+
+            // Only process directives that have FIELD_DEFINITION location and a field_definition callback
+            if ( ! in_array( 'FIELD_DEFINITION', $directive->locations, true ) ||
+                 ! isset( $directive->config['field_definition'] ) ||
+                 ! is_callable( $directive->config['field_definition'] ) ) {
+                continue;
+            }
+
+            $field_config = call_user_func(
+                $directive->config['field_definition'],
+                $field_config,
+                $field_name,
+                $type_name,
+                $type_config,
+                $directive
+            );
+        }
+
+        // Remove the directives from the field config as they don't belong in the final GraphQL field definition
+        unset( $field_config['directives'] );
+
+        return $field_config;
     }
 }

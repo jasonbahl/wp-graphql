@@ -1238,14 +1238,19 @@ class TypeRegistry {
 					return $fields;
 				}
 
-				/**
-				 * If the field returns a properly prepared field, add it the the field registry
-				 */
-				$field = $this->prepare_field( $field_name, $config, $type_name );
+						/**
+		 * Apply any FIELD_DEFINITION directives before preparing the field
+		 */
+		$config = apply_filters( 'graphql_field_config', $config, $field_name, $type_name, [] );
 
-				if ( ! empty( $field ) ) {
-					$fields[ $field_name ] = $field;
-				}
+		/**
+		 * If the field returns a properly prepared field, add it the the field registry
+		 */
+		$field = $this->prepare_field( $field_name, $config, $type_name );
+
+		if ( ! empty( $field ) ) {
+			$fields[ $field_name ] = $field;
+		}
 
 				return $fields;
 			},

@@ -21,6 +21,9 @@
  * @version  2.3.3
  */
 
+use GraphQL\Type\Definition\ResolveInfo;
+use GraphQL\Type\Definition\Type;
+
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -194,3 +197,86 @@ function graphql_init_appsero_telemetry(): void {
 }
 
 graphql_init_appsero_telemetry();
+
+add_action( 'graphql_register_types', function() {
+	register_graphql_directive( 'formatDate', [
+		'description' => 'Formats a date value. This directive enforces that the field has a "format" argument.',
+		'locations'   => [
+			'FIELD_DEFINITION' => [
+				'apply' => function ( $field_config, $field_name, $type_name, $type_config, $directive ) {
+					// Add the format argument to the field
+					if ( ! isset( $field_config['args'] ) ) {
+						$field_config['args'] = [];
+					}
+
+					$field_config['args']['formatDate'] = [
+						'type'         => Type::string(),
+						'description'  => 'PHP date format string for formatting the date',
+						'defaultValue' => 'F j, Y',
+					];
+
+					// Wrap the existing resolver to handle date formatting
+					$original_resolver = $field_config['resolve'] ?? null;
+
+					$field_config['resolve'] = function ( $source, $args, $context, ResolveInfo $info ) use ( $original_resolver ) {
+						// Get the original value first
+						$result = null;
+						if ( is_callable( $original_resolver ) ) {
+							$result = call_user_func( $original_resolver, $source, $args, $context, $info );
+						} else {
+							// Fall back to default field resolution
+							$result = $source->{$info->fieldName} ?? null;
+						}
+
+						// If no format argument is provided, return the original result
+						if ( empty( $args['formatDate'] ) ) {
+							return $result;
+						}
+
+						// Attempt to create a timestamp from the resolved value
+						$timestamp = is_numeric( $result ) ? $result : strtotime( $result );
+
+						// If the value couldn't be converted to a valid timestamp, return original
+						if ( false === $timestamp ) {
+							graphql_debug( sprintf( 'The formatDate directive on field "%s" could not parse the date value.', $info->fieldName ), [
+								'field_name' => $info->fieldName,
+								'raw_value'  => $result,
+							] );
+							return $result;
+						}
+
+						// Format the date
+						return wp_date( $args['formatDate'], $timestamp );
+					};
+
+					return $field_config;
+				},
+			],
+		],
+		'onTypes' => [ 'String', 'Date' ], // Only allow on String and Date type fields
+	] );
+
+	register_graphql_scalar( 'Date', [
+		'description' => 'A date string in the format YYYY-MM-DD.',
+		'parseValue' => function( $value ) {
+			// TODO: Implement parseValue
+			return $value;
+		},
+		'serialize' => function( $value ) {
+			// TODO: Implement serialize
+			return $value;
+		},
+		'parseLiteral' => function( $value ) {
+			// TODO: Implement parseLiteral
+			return $value;
+		},
+	] );
+
+	register_graphql_field( 'Post', 'publishedDate', [
+		'type' => 'Date',
+		'directives' => [ 'formatDate' ],
+		'resolve' => function( $source, $args, $context, $info ) {
+			return $source->date;
+		},
+	]);
+} );

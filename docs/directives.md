@@ -61,6 +61,123 @@ The `register_graphql_directive()` function accepts a config array with the foll
 - **`before_execute_query`** (`callable`): A callback function that is executed when a directive is encountered on a query, before the query is executed. This hooks into the `graphql_before_execute` action.
 - **`after_execute_query`** (`callable`): A callback function that is executed when a directive is encountered on a query, after the query is executed. This hooks into the `graphql_after_execute` action.
 
+### Location-Based Callback Structure
+
+WPGraphQL supports a new location-based callback structure that allows you to specify callbacks for different directive locations:
+
+```php
+register_graphql_directive( 'myDirective', [
+    'name' => 'myDirective',
+    'description' => 'A description of the directive',
+    'locations' => [
+        'FIELD' => [
+            'before_resolve' => function(...) { /* ... */ },
+            'resolve' => function(...) { /* ... */ },
+            'after_resolve' => function(...) { /* ... */ },
+        ],
+        'FIELD_DEFINITION' => [
+            'apply' => function(...) { /* ... */ },
+        ],
+        'QUERY' => [
+            'before_execute' => function(...) { /* ... */ },
+            'after_execute' => function(...) { /* ... */ },
+        ],
+    ],
+] );
+```
+
+#### FIELD vs FIELD_DEFINITION
+
+There are two important directive locations for field-related functionality:
+
+- **`FIELD`**: Directives that are applied to fields during query execution. These are used in the query itself like `@myDirective` and operate on the resolved field values.
+- **`FIELD_DEFINITION`**: Directives that are applied during field registration. These modify the field definition itself, allowing you to add arguments, wrap resolvers, and enforce constraints at the schema level.
+
+### FIELD_DEFINITION Directives
+
+`FIELD_DEFINITION` directives are a powerful feature that allows you to modify field definitions during schema registration. This enables you to:
+
+- **Add arguments to fields automatically**
+- **Wrap or replace field resolvers**
+- **Enforce field-level constraints**
+- **Add validation logic**
+- **Transform field configurations**
+
+#### Usage Pattern
+
+1. **Register the directive** with a `FIELD_DEFINITION` location and an `apply` callback
+2. **Register fields** with the directive specified in the `directives` array
+3. **Query the field** with the automatically added arguments
+
+#### Example: Automatic Date Formatting
+
+```php
+// 1. Register the directive
+register_graphql_directive( 'formatDate', [
+    'description' => 'Adds date formatting capability to fields',
+    'locations' => [
+        'FIELD_DEFINITION' => [
+            'apply' => function( $field_config, $field_name, $type_name, $type_config, $directive ) {
+                // Add format argument
+                $field_config['args']['format'] = [
+                    'type' => 'String',
+                    'description' => 'Date format string',
+                    'defaultValue' => 'F j, Y',
+                ];
+
+                // Wrap resolver to handle formatting
+                $original_resolver = $field_config['resolve'] ?? null;
+                $field_config['resolve'] = function( $source, $args, $context, $info ) use ( $original_resolver ) {
+                    $result = $original_resolver ? $original_resolver( $source, $args, $context, $info ) : $source->{$info->fieldName};
+
+                    if ( !empty( $args['format'] ) ) {
+                        $timestamp = is_numeric( $result ) ? $result : strtotime( $result );
+                        return wp_date( $args['format'], $timestamp );
+                    }
+
+                    return $result;
+                };
+
+                return $field_config;
+            }
+        ]
+    ]
+] );
+
+// 2. Register a field with the directive
+register_graphql_field( 'Post', 'publishDate', [
+    'type' => 'String',
+    'directives' => [ 'formatDate' ],
+    'resolve' => function( $post ) {
+        return get_the_date( 'c', $post->ID );
+    }
+] );
+```
+
+```graphql
+# 3. Query with automatic argument
+{
+  posts {
+    nodes {
+      title
+      publishDate(format: "Y-m-d")
+    }
+  }
+}
+```
+
+#### FIELD_DEFINITION Callback Arguments
+
+The `apply` callback for `FIELD_DEFINITION` directives receives:
+
+- **`$field_config`** (`array`): The field configuration array
+- **`$field_name`** (`string`): The name of the field being registered
+- **`$type_name`** (`string`): The name of the type the field belongs to
+- **`$type_config`** (`array`): The configuration of the parent type
+- **`$directive`** (`Directive`): The directive definition object
+
+The callback must return the modified `$field_config` array.
+
 ### Callback Arguments
 
 #### Field Callbacks
