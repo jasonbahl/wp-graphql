@@ -194,3 +194,216 @@ function graphql_init_appsero_telemetry(): void {
 }
 
 graphql_init_appsero_telemetry();
+
+// Register the field early to ensure it's available when the filter runs
+add_action( 'graphql_register_types', function() {
+	error_log( 'Registering GraphQL types and fields' );
+
+	register_graphql_input_type( 'TestBy', [
+		'fields' => [
+			'id' => [
+				'type' => 'ID',
+			],
+			'name' => [
+				'type' => 'String',
+			]
+		],
+		'isOneOf' => true,
+	]);
+
+	// Define the legacy args configuration
+	$legacy_args = [
+		'id' => [
+			'type' => [ 'non_null' => 'ID' ],
+			'deprecationReason' => 'use by instead',
+			'mapsTo' => 'by',
+			'transform' => function( $value ) {
+				return [ 'id' => $value ];
+			}
+		],
+	];
+
+	// Create the original resolver
+	$original_resolver = function( $source, $args, $context, $info ) {
+		error_log( 'Original test resolver called with args: ' . json_encode( $args ) );
+		// Validate that either by or legacy args are provided
+		if ( empty( $args['by'] ) ) {
+			throw new \GraphQL\Error\UserError( 'Either "by" argument or legacy arguments must be provided' );
+		}
+		return json_encode( $args );
+	};
+
+	// Create the wrapped resolver that handles legacy args
+	$wrapped_resolver = function( $source, $args, $context, $info ) use ( $original_resolver, $legacy_args ) {
+		error_log( 'Wrapped resolver called for test with args: ' . json_encode( $args ) );
+
+		$has_legacy_args = false;
+
+		// Check if any legacy arguments are present
+		foreach ( $legacy_args as $legacy_arg_name => $legacy_config ) {
+			if ( isset( $args[$legacy_arg_name] ) ) {
+				$has_legacy_args = true;
+				error_log( "Found legacy arg: {$legacy_arg_name}" );
+				break;
+			}
+		}
+
+		if ( $has_legacy_args ) {
+			error_log( "Processing legacy arguments for transformation" );
+			// Transform legacy arguments
+			foreach ( $legacy_args as $legacy_arg_name => $legacy_config ) {
+				if ( ! isset( $args[$legacy_arg_name] ) ) {
+					continue;
+				}
+
+				$legacy_value = $args[$legacy_arg_name];
+				$maps_to = $legacy_config['mapsTo'];
+				$transform_fn = $legacy_config['transform'];
+
+				// Apply transformation
+				$transformed_value = $transform_fn( $legacy_value );
+
+				// Set the transformed value
+				$args[$maps_to] = $transformed_value;
+
+				// Remove the legacy argument
+				unset( $args[$legacy_arg_name] );
+
+				// Log usage for monitoring
+				error_log( "Legacy argument '{$legacy_arg_name}' transformed to '{$maps_to}': " . json_encode( $transformed_value ) );
+			}
+		} else {
+			error_log( "No legacy args found in: " . json_encode( array_keys( $args ) ) );
+		}
+
+		// Call the original resolver with transformed args
+		error_log( "Calling original resolver with args: " . json_encode( $args ) );
+		return $original_resolver( $source, $args, $context, $info );
+	};
+
+	register_graphql_field( 'RootQuery', 'test', [
+		'type' => 'String',
+		'args' => [
+			'by' => [
+				'type' => 'TestBy', // Make it nullable so legacy args can provide it
+			],
+			// Add legacy args to schema so they get passed to resolver
+			'id' => [
+				'type' => 'ID', // Make it nullable since we disabled validation
+				'description' => 'Legacy argument. Use "by" instead.',
+			]
+		],
+		'resolve' => $wrapped_resolver
+	]);
+
+	error_log( 'Finished registering GraphQL types and fields' );
+}, 5); // Run earlier to ensure field is registered before filter runs
+
+// Step 1: Legacy args are intentionally NOT added to schema introspection
+// This encourages migration to new patterns while maintaining backward compatibility
+
+// Step 2: Disable problematic validation rules when legacy args are present
+add_filter( 'graphql_validation_rules', 'disable_validation_for_legacy_args', 10, 2 );
+function disable_validation_for_legacy_args( $validation_rules, $request ) {
+	// Remove the validation rules that would block legacy arguments
+	unset( $validation_rules['KnownArgumentNames'] );
+	unset( $validation_rules['ProvidedRequiredArguments'] );
+
+	// Debug: Log what validation rules are being used
+	error_log( 'Validation rules after filter: ' . implode( ', ', array_keys( $validation_rules ) ) );
+
+	return $validation_rules;
+}
+
+// Alternative approach: Try to disable validation entirely for testing
+add_filter( 'graphql_validation_rules', 'disable_all_validation_for_testing', 5, 2 );
+function disable_all_validation_for_testing( $validation_rules, $request ) {
+	// For testing purposes, let's disable ALL validation to see if our transformation works
+	error_log( 'Original validation rules: ' . implode( ', ', array_keys( $validation_rules ) ) );
+
+	// Return only essential validation rules, removing the problematic ones
+	// Use full class names as they appear in the logs
+	$filtered_rules = [];
+	foreach ( $validation_rules as $key => $rule ) {
+		if ( ! in_array( $key, [
+			'GraphQL\\Validator\\Rules\\KnownArgumentNames',
+			'GraphQL\\Validator\\Rules\\ProvidedRequiredArguments'
+		] ) ) {
+			$filtered_rules[$key] = $rule;
+		}
+	}
+
+	error_log( 'Filtered validation rules: ' . implode( ', ', array_keys( $filtered_rules ) ) );
+	return $filtered_rules;
+}
+
+// Step 3: Legacy args are handled through resolver transformation only
+// We don't add them to the schema to keep introspection clean
+
+// Step 4: Use the correct filter to modify RootQuery fields
+add_filter( 'graphql_rootQuery_fields', 'wrap_resolver_for_legacy_args', 20, 3 );
+function wrap_resolver_for_legacy_args( $fields, $wp_object_type, $type_registry ) {
+	error_log( "graphql_rootQuery_fields filter called with " . count( $fields ) . " fields" );
+
+	foreach ( $fields as $field_name => $field_config ) {
+		error_log( "Checking field: {$field_name}" );
+
+		// Check if this field has legacy args in its configuration
+		if ( isset( $field_config['legacyArgs'] ) && isset( $field_config['resolve'] ) ) {
+			error_log( "Found field with legacy args: {$field_name}" );
+
+			$original_resolver = $field_config['resolve'];
+			$legacy_args = $field_config['legacyArgs'];
+
+			// Wrap the resolver
+			$fields[$field_name]['resolve'] = function( $source, $args, $context, $info ) use ( $original_resolver, $legacy_args, $field_name ) {
+				error_log( "Wrapped resolver called for {$field_name} with args: " . json_encode( $args ) );
+
+				$has_legacy_args = false;
+
+				// Check if any legacy arguments are present
+				foreach ( $legacy_args as $legacy_arg_name => $legacy_config ) {
+					if ( isset( $args[$legacy_arg_name] ) ) {
+						$has_legacy_args = true;
+						error_log( "Found legacy arg: {$legacy_arg_name}" );
+						break;
+					}
+				}
+
+				if ( $has_legacy_args ) {
+					error_log( "Processing legacy arguments for transformation" );
+					// Transform legacy arguments
+					foreach ( $legacy_args as $legacy_arg_name => $legacy_config ) {
+						if ( ! isset( $args[$legacy_arg_name] ) ) {
+							continue;
+						}
+
+						$legacy_value = $args[$legacy_arg_name];
+						$maps_to = $legacy_config['mapsTo'];
+						$transform_fn = $legacy_config['transform'];
+
+						// Apply transformation
+						$transformed_value = $transform_fn( $legacy_value );
+
+						// Set the transformed value
+						$args[$maps_to] = $transformed_value;
+
+						// Remove the legacy argument
+						unset( $args[$legacy_arg_name] );
+
+						// Log usage for monitoring
+						error_log( "Legacy argument '{$legacy_arg_name}' transformed to '{$maps_to}': " . json_encode( $transformed_value ) );
+					}
+				} else {
+					error_log( "No legacy args found in: " . json_encode( array_keys( $args ) ) );
+				}
+
+				// Call the original resolver with transformed args
+				error_log( "Calling original resolver with args: " . json_encode( $args ) );
+				return $original_resolver( $source, $args, $context, $info );
+			};
+		}
+	}
+
+	return $fields;
+}
