@@ -68,6 +68,50 @@ class ContentNodeIdTypeEnum {
 					'values'      => $values,
 				]
 			);
+
+			// Register corresponding OneOf input type
+			$oneOf_fields = [
+				'id'         => [
+					'type'        => 'ID',
+					'description' => __( 'Get the object by its global ID', 'wp-graphql' ),
+				],
+				'databaseId' => [
+					'type'        => 'Int',
+					'description' => __( 'Get the object by its database ID', 'wp-graphql' ),
+				],
+				'uri'        => [
+					'type'        => 'String',
+					'description' => __( 'Get the object by its URI/path', 'wp-graphql' ),
+				],
+			];
+
+			// Add slug field for non-hierarchical post types
+			if ( ! $post_type_object->hierarchical ) {
+				$oneOf_fields['slug'] = [
+					'type'        => 'String',
+					'description' => __( 'Get the object by its slug (only available for non-hierarchical post types)', 'wp-graphql' ),
+				];
+			}
+
+			// Add sourceUrl field for attachments (media items)
+			if ( 'attachment' === $post_type_object->name ) {
+				$oneOf_fields['sourceUrl'] = [
+					'type'        => 'String',
+					'description' => __( 'Get the media item by its source URL', 'wp-graphql' ),
+				];
+			}
+
+			register_graphql_input_type(
+				$post_type_object->graphql_single_name . 'By',
+				[
+					'description' => static function () use ( $post_type_object ) {
+						/* translators: %s: post type name */
+						return sprintf( __( 'Specify which %s to retrieve by providing one of the supported identifiers', 'wp-graphql' ), strtolower( $post_type_object->graphql_single_name ) );
+					},
+					'isOneOf'     => true,
+					'fields'      => $oneOf_fields,
+				]
+			);
 		}
 	}
 

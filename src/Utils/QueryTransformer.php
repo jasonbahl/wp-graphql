@@ -280,8 +280,8 @@ class QueryTransformer {
 		$used_variables = [];
 		foreach ( $modern_value as $field_name => $field_value ) {
 			if ( is_array( $field_value ) && isset( $field_value['_variable'] ) ) {
-				$variable_node = $field_value['_variable'];
-				$variable_name = $variable_node->name->value;
+				$variable_node                    = $field_value['_variable'];
+				$variable_name                    = $variable_node->name->value;
 				$used_variables[ $variable_name ] = true;
 
 				// Check if there's an explicit target type for this variable
@@ -302,7 +302,7 @@ class QueryTransformer {
 		}
 
 		// Track variables that were in legacy values but not used in modern value (these get removed)
-		foreach ( $legacy_values as $legacy_arg_name => $legacy_value ) {
+		foreach ( $legacy_values as $legacy_value ) {
 			if ( is_array( $legacy_value ) && isset( $legacy_value['_variable'] ) ) {
 				$variable_node = $legacy_value['_variable'];
 				$variable_name = $variable_node->name->value;

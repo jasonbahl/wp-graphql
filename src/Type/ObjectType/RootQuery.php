@@ -855,6 +855,13 @@ class RootQuery {
 								return __( 'Type of unique identifier to fetch by. Default is Global ID', 'wp-graphql' );
 							},
 						],
+						'by'        => [
+							'type'        => $post_type_object->graphql_single_name . 'By',
+							'description' => static function () use ( $post_type_object ) {
+								/* translators: %s: post type name */
+								return sprintf( __( 'Specify which %s to retrieve by providing one of the supported identifiers', 'wp-graphql' ), strtolower( $post_type_object->graphql_single_name ) );
+							},
+						],
 						'asPreview' => [
 							'type'        => 'Boolean',
 							'description' => static function () {
@@ -862,23 +869,74 @@ class RootQuery {
 							},
 						],
 					],
+					'legacy_args' => [
+						'id'        => [
+							'description' => __( 'Legacy argument for retrieving by ID. Use "by" argument instead.', 'wp-graphql' ),
+						],
+						'idType'    => [
+							'description' => __( 'Legacy argument for specifying ID type. Use "by" argument instead.', 'wp-graphql' ),
+						],
+						'transform' => static function ( $args ) {
+							// If both legacy args are present, transform to the new 'by' format
+							if ( isset( $args['id'] ) || isset( $args['idType'] ) ) {
+								$id     = $args['id'] ?? null;
+								$idType = $args['idType'] ?? 'global_id';
+
+								// Create the 'by' argument based on idType
+								switch ( $idType ) {
+									case 'global_id':
+									case 'ID':
+										$by_value = [ 'id' => $id ];
+										break;
+									case 'database_id':
+									case 'DATABASE_ID':
+										$by_value = [ 'databaseId' => (int) $id ];
+										break;
+									case 'uri':
+									case 'URI':
+										$by_value = [ 'uri' => $id ];
+										break;
+									case 'slug':
+									case 'SLUG':
+										$by_value = [ 'slug' => $id ];
+										break;
+									case 'source_url':
+									case 'SOURCE_URL':
+										$by_value = [ 'sourceUrl' => $id ];
+										break;
+									default:
+										$by_value = [ 'id' => $id ];
+										break;
+								}
+
+								$args['by'] = $by_value;
+								unset( $args['id'], $args['idType'] );
+							}
+
+							return $args;
+						},
+					],
 					'resolve'     => static function ( $source, array $args, AppContext $context ) use ( $post_type_object ) {
-						$idType  = isset( $args['idType'] ) ? $args['idType'] : 'global_id';
 						$post_id = null;
-						switch ( $idType ) {
-							case 'slug':
+
+						// Handle new 'by' argument
+						if ( isset( $args['by'] ) ) {
+							$by = $args['by'];
+
+							if ( isset( $by['id'] ) ) {
+								// Global ID
+								$id_components = Relay::fromGlobalId( $by['id'] );
+								if ( ! isset( $id_components['id'] ) || ! absint( $id_components['id'] ) ) {
+									throw new UserError( esc_html__( 'The ID input is invalid.', 'wp-graphql' ) );
+								}
+								$post_id = absint( $id_components['id'] );
+							} elseif ( isset( $by['databaseId'] ) ) {
+								// Database ID
+								$post_id = absint( $by['databaseId'] );
+							} elseif ( isset( $by['uri'] ) ) {
+								// URI
 								return $context->node_resolver->resolve_uri(
-									$args['id'],
-									[
-										'name'      => $args['id'],
-										'post_type' => $post_type_object->name,
-										'nodeType'  => 'ContentNode',
-										'asPreview' => $args['asPreview'] ?? null,
-									]
-								);
-							case 'uri':
-								return $context->node_resolver->resolve_uri(
-									$args['id'],
+									$by['uri'],
 									[
 										'post_type' => $post_type_object->name,
 										'archive'   => false,
@@ -886,32 +944,84 @@ class RootQuery {
 										'asPreview' => $args['asPreview'] ?? null,
 									]
 								);
-							case 'database_id':
-								$post_id = absint( $args['id'] );
-								break;
-							case 'source_url':
-								$url     = $args['id'];
+							} elseif ( isset( $by['slug'] ) ) {
+								// Slug (for non-hierarchical post types)
+								return $context->node_resolver->resolve_uri(
+									$by['slug'],
+									[
+										'name'      => $by['slug'],
+										'post_type' => $post_type_object->name,
+										'nodeType'  => 'ContentNode',
+										'asPreview' => $args['asPreview'] ?? null,
+									]
+								);
+							} elseif ( isset( $by['sourceUrl'] ) ) {
+								// Source URL (for attachments)
+								$url     = $by['sourceUrl'];
 								$post_id = attachment_url_to_postid( $url ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.attachment_url_to_postid_attachment_url_to_postid
 								if ( empty( $post_id ) ) {
 									return null;
 								}
-								$post_id = absint( attachment_url_to_postid( $url ) ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.attachment_url_to_postid_attachment_url_to_postid
-								break;
-							case 'global_id':
-							default:
-								$id_components = Relay::fromGlobalId( $args['id'] );
-								if ( ! isset( $id_components['id'] ) || ! absint( $id_components['id'] ) ) {
-									throw new UserError( esc_html__( 'The ID input is invalid. Make sure you set the proper idType for your input.', 'wp-graphql' ) );
-								}
-								$post_id = absint( $id_components['id'] );
-								break;
+								$post_id = absint( $post_id );
+							}
+						} elseif ( isset( $args['id'] ) ) {
+							// Legacy fallback - handle old 'id' and 'idType' arguments (should be transformed by legacy_args)
+							$idType = $args['idType'] ?? 'global_id';
+
+							switch ( $idType ) {
+								case 'slug':
+									return $context->node_resolver->resolve_uri(
+										$args['id'],
+										[
+											'name'      => $args['id'],
+											'post_type' => $post_type_object->name,
+											'nodeType'  => 'ContentNode',
+											'asPreview' => $args['asPreview'] ?? null,
+										]
+									);
+								case 'uri':
+									return $context->node_resolver->resolve_uri(
+										$args['id'],
+										[
+											'post_type' => $post_type_object->name,
+											'archive'   => false,
+											'nodeType'  => 'ContentNode',
+											'asPreview' => $args['asPreview'] ?? null,
+										]
+									);
+								case 'database_id':
+									$post_id = absint( $args['id'] );
+									break;
+								case 'source_url':
+									$url     = $args['id'];
+									$post_id = attachment_url_to_postid( $url ); // phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.attachment_url_to_postid_attachment_url_to_postid
+									if ( empty( $post_id ) ) {
+										return null;
+									}
+									$post_id = absint( $post_id );
+									break;
+								case 'global_id':
+								default:
+									$id_components = Relay::fromGlobalId( $args['id'] );
+									if ( ! isset( $id_components['id'] ) || ! absint( $id_components['id'] ) ) {
+										throw new UserError( esc_html__( 'The ID input is invalid. Make sure you set the proper idType for your input.', 'wp-graphql' ) );
+									}
+									$post_id = absint( $id_components['id'] );
+									break;
+							}
 						}
 
-						if ( isset( $args['asPreview'] ) && true === $args['asPreview'] ) {
+						if ( isset( $args['asPreview'] ) && true === $args['asPreview'] && $post_id ) {
 							$post_id = Utils::get_post_preview_id( $post_id );
 						}
 
-						return absint( $post_id ) ? $context->get_loader( 'post' )->load_deferred( $post_id )->then(
+						if ( ! absint( $post_id ) ) {
+							return null;
+						}
+
+						$deferred = $context->get_loader( 'post' )->load_deferred( $post_id );
+
+						return $deferred ? $deferred->then(
 							static function ( $post ) use ( $post_type_object ) {
 
 								// if the post isn't an instance of a Post model, return

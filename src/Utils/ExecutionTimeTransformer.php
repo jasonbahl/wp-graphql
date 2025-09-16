@@ -33,28 +33,26 @@ class ExecutionTimeTransformer {
 	 */
 	public static function transform_field_args( $nil, $source, array $args, $context, $info, string $type_name, string $field_key, $field, $field_resolver ) {
 		// Get transformation rules for this field
-		$transformation_key = $type_name . '.' . $field_key;
+		$transformation_key   = $type_name . '.' . $field_key;
 		$transformation_rules = LegacyArgsRegistry::get_transformation_rules();
-
-		error_log( "ExecutionTimeTransformer: Checking field {$transformation_key}, args: " . var_export( array_keys( $args ), true ) );
 
 		if ( ! isset( $transformation_rules[ $transformation_key ] ) ) {
 			return $nil; // No transformation needed
 		}
 
-		$rule = $transformation_rules[ $transformation_key ];
-		$transform_fn = $rule['transform'];
+		$rule             = $transformation_rules[ $transformation_key ];
+		$transform_fn     = $rule['transform'];
 		$legacy_arg_names = $rule['legacy_args'];
-		$modern_arg = $rule['modern_arg'];
+		$modern_arg       = $rule['modern_arg'];
 
 		// Check if this request contains legacy arguments
-		$legacy_values = [];
+		$legacy_values   = [];
 		$has_legacy_args = false;
 
 		foreach ( $legacy_arg_names as $legacy_arg_name ) {
 			if ( isset( $args[ $legacy_arg_name ] ) ) {
 				$legacy_values[ $legacy_arg_name ] = $args[ $legacy_arg_name ];
-				$has_legacy_args = true;
+				$has_legacy_args                   = true;
 			}
 		}
 
