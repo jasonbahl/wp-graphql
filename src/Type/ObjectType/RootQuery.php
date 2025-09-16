@@ -641,66 +641,112 @@ class RootQuery {
 								return __( 'Returns a user', 'wp-graphql' );
 							},
 							'args'        => [
-								'id'     => [
-									'type'        => [
-										'non_null' => 'ID',
-									],
+								'by' => [
+									'type'        => [ 'non_null' => 'UserBy' ],
 									'description' => static function () {
-										return __( 'The globally unique identifier of the user.', 'wp-graphql' );
+										return __( 'Arguments for identifying the user', 'wp-graphql' );
 									},
 								],
+							],
+							'legacy_args' => [
+								'id'     => [
+									'type'    => [ 'non_null' => 'ID' ],
+									'maps_to' => 'by',
+								],
 								'idType' => [
-									'type'        => 'UserNodeIdTypeEnum',
-									'description' => static function () {
-										return __( 'Type of unique identifier to fetch a user by. Default is Global ID', 'wp-graphql' );
+									'type'      => 'UserNodeIdTypeEnum',
+									'maps_to'   => 'by',
+									'transform' => static function ( array $legacy_values ): array {
+										$by_value     = [];
+										$target_types = [];
+
+										if ( isset( $legacy_values['id'] ) ) {
+											$id_type  = $legacy_values['idType'] ?? 'ID';
+											$id_value = $legacy_values['id'];
+
+											switch ( $id_type ) {
+												case 'database_id':
+												case 'DATABASE_ID':
+													$by_value['databaseId'] = $id_value;
+													$target_types['id']     = 'ID!'; // databaseId field accepts ID
+													break;
+												case 'global_id':
+												case 'ID':
+												case 'id':
+												default:
+													$by_value['id']     = $id_value;
+													$target_types['id'] = 'ID!'; // id field accepts ID
+													break;
+												case 'uri':
+												case 'URI':
+													$by_value['uri']    = $id_value;
+													$target_types['id'] = 'String!'; // uri field expects String
+													break;
+												case 'slug':
+												case 'SLUG':
+													$by_value['slug']   = $id_value;
+													$target_types['id'] = 'String!'; // slug field expects String
+													break;
+												case 'email':
+												case 'EMAIL':
+													$by_value['email']  = $id_value;
+													$target_types['id'] = 'String!'; // email field expects String
+													break;
+												case 'login':
+												case 'USERNAME':
+													$by_value['username'] = $id_value;
+													$target_types['id']   = 'String!'; // username field expects String
+													break;
+											}
+										}
+
+										return [
+											'value'        => $by_value,
+											'target_types' => $target_types,
+										];
 									},
 								],
 							],
 							'resolve'     => static function ( $source, array $args, $context ) {
-								$idType = isset( $args['idType'] ) ? $args['idType'] : 'id';
+								// Handle the oneOf "by" argument
+								$by = $args['by'];
+								$id = null;
 
-								switch ( $idType ) {
-									case 'database_id':
-										$id = absint( $args['id'] );
-										break;
-									case 'uri':
-										return $context->node_resolver->resolve_uri(
-											$args['id'],
-											[
-												'nodeType' => 'User',
-											]
-										);
-									case 'login':
-										$current_user = wp_get_current_user();
-										if ( $current_user->user_login !== $args['id'] ) {
-											if ( ! current_user_can( 'list_users' ) ) {
-												throw new UserError( esc_html__( 'You do not have permission to request a User by Username', 'wp-graphql' ) );
-											}
+								if ( isset( $by['databaseId'] ) ) {
+									$id = absint( $by['databaseId'] );
+								} elseif ( isset( $by['uri'] ) ) {
+									return $context->node_resolver->resolve_uri(
+										$by['uri'],
+										[
+											'nodeType' => 'User',
+										]
+									);
+								} elseif ( isset( $by['username'] ) ) {
+									$current_user = wp_get_current_user();
+									if ( $current_user->user_login !== $by['username'] ) {
+										if ( ! current_user_can( 'list_users' ) ) {
+											throw new UserError( esc_html__( 'You do not have permission to request a User by Username', 'wp-graphql' ) );
 										}
+									}
 
-										$user = get_user_by( 'login', $args['id'] );
-										$id   = isset( $user->ID ) ? $user->ID : null;
-										break;
-									case 'email':
-										$current_user = wp_get_current_user();
-										if ( $current_user->user_email !== $args['id'] ) {
-											if ( ! current_user_can( 'list_users' ) ) {
-												throw new UserError( esc_html__( 'You do not have permission to request a User by Email', 'wp-graphql' ) );
-											}
+									$user = get_user_by( 'login', $by['username'] );
+									$id   = isset( $user->ID ) ? $user->ID : null;
+								} elseif ( isset( $by['email'] ) ) {
+									$current_user = wp_get_current_user();
+									if ( $current_user->user_email !== $by['email'] ) {
+										if ( ! current_user_can( 'list_users' ) ) {
+											throw new UserError( esc_html__( 'You do not have permission to request a User by Email', 'wp-graphql' ) );
 										}
+									}
 
-										$user = get_user_by( 'email', $args['id'] );
-										$id   = isset( $user->ID ) ? $user->ID : null;
-										break;
-									case 'slug':
-										$user = get_user_by( 'slug', $args['id'] );
-										$id   = isset( $user->ID ) ? $user->ID : null;
-										break;
-									case 'id':
-									default:
-										$id_components = Relay::fromGlobalId( $args['id'] );
-										$id            = absint( $id_components['id'] );
-										break;
+									$user = get_user_by( 'email', $by['email'] );
+									$id   = isset( $user->ID ) ? $user->ID : null;
+								} elseif ( isset( $by['slug'] ) ) {
+									$user = get_user_by( 'slug', $by['slug'] );
+									$id   = isset( $user->ID ) ? $user->ID : null;
+								} elseif ( isset( $by['id'] ) ) {
+									$id_components = Relay::fromGlobalId( $by['id'] );
+									$id            = absint( $id_components['id'] );
 								}
 
 								return ! empty( $id ) ? $context->get_loader( 'user' )->load_deferred( $id ) : null;

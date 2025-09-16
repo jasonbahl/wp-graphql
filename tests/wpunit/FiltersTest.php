@@ -42,7 +42,13 @@ class FiltersTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 
 		codecept_debug( $this->filter_values, $request );
 
-		$this->assertSame( $this->filter_values, $request );
+		// The filter receives the formatted query from AST transformation
+		$expected = [
+			'query'     => "query GetPosts(\$first: Int) {\n  posts(first: \$first) {\n    nodes {\n      id\n      title\n    }\n  }\n}\n",
+			'variables' => [ 'first' => 1 ],
+		];
+
+		$this->assertSame( $expected, $this->filter_values );
 	}
 
 	public function testFilterGraphqlRequestResultsForBatchQuery() {
@@ -78,7 +84,19 @@ class FiltersTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 		codecept_debug( $this->filter_values );
 		codecept_debug( $request );
 
-		$this->assertSame( $request, $this->filter_values );
+		// The filter receives the formatted queries from AST transformation
+		$expected = [
+			[
+				'query'     => "query GetPosts(\$first: Int) {\n  posts(first: \$first) {\n    nodes {\n      id\n      title\n    }\n  }\n}\n",
+				'variables' => [ 'first' => 1 ],
+			],
+			[
+				'query'     => "query GetPosts(\$first: Int) {\n  posts(first: \$first) {\n    nodes {\n      id\n    }\n  }\n}\n",
+				'variables' => [ 'first' => 2 ],
+			],
+		];
+
+		$this->assertSame( $expected, $this->filter_values );
 	}
 
 	/**
@@ -240,7 +258,9 @@ class FiltersTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 
 			if ( $captured_params ) {
 				$this->assertInstanceOf( '\GraphQL\Server\OperationParams', $captured_params, 'Params should be OperationParams instance' );
-				$this->assertEquals( $query, $captured_params->query, 'Query should match what was sent' );
+				// The query is formatted by AST transformation
+				$expected_formatted_query = "{\n  posts {\n    nodes {\n      id\n    }\n  }\n}\n";
+				$this->assertEquals( $expected_formatted_query, $captured_params->query, 'Query should match formatted version' );
 			}
 		}
 	}
@@ -297,9 +317,11 @@ class FiltersTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 			$this->assertInstanceOf( '\GraphQL\Server\OperationParams', $captured_params[0], 'First params should be OperationParams instance' );
 			$this->assertInstanceOf( '\GraphQL\Server\OperationParams', $captured_params[1], 'Second params should be OperationParams instance' );
 
-			// Assert that params contain the expected query information
-			$this->assertEquals( $request[0]['query'], $captured_params[0]->query, 'First query should match' );
-			$this->assertEquals( $request[1]['query'], $captured_params[1]->query, 'Second query should match' );
+			// Assert that params contain the expected formatted query information
+			$expected_posts_query = "{\n  posts {\n    nodes {\n      id\n    }\n  }\n}\n";
+			$expected_users_query = "{\n  users {\n    nodes {\n      id\n    }\n  }\n}\n";
+			$this->assertEquals( $expected_posts_query, $captured_params[0]->query, 'First query should match formatted version' );
+			$this->assertEquals( $expected_users_query, $captured_params[1]->query, 'Second query should match formatted version' );
 		}
 	}
 }

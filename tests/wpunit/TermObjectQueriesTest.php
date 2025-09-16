@@ -505,8 +505,8 @@ class TermObjectQueriesTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase 
 				'message'    => 'The ID input is invalid',
 				'locations'  => [
 					[
-						'line'   => 3,
-						'column' => 4,
+						'line'   => 2,
+						'column' => 3,
 					],
 				],
 				'path'       => [

@@ -382,6 +382,57 @@ final class WPGraphQL {
 			10,
 			1
 		);
+
+		/**
+		 * Legacy argument transformation system
+		 *
+		 * Hook into field registration to collect legacy_args configurations
+		 * This hooks into the broader graphql_object_fields filter to work with ALL types
+		 */
+		add_filter(
+			'graphql_object_fields',
+			[
+				'\WPGraphQL\Registry\LegacyArgsRegistry',
+				'intercept_field_registration',
+			],
+			15,
+			2
+		); // Run after default field registration
+
+		/**
+		 * Hook into WPGraphQL request lifecycle to transform queries
+		 * This runs AFTER schema is built but BEFORE query execution
+		 */
+		add_filter(
+			'pre_graphql_execute_request',
+			static function ( $response, $request ) {
+				// Don't intercept if there's already a response
+				if ( null !== $response ) {
+					return $response;
+				}
+
+				// Get the query from the request
+				$params = $request->params;
+				if ( ! $params || empty( $params->query ) ) {
+					return $response;
+				}
+
+				$transformer       = new \WPGraphQL\Utils\QueryTransformer();
+				$original_query    = $params->query;
+				$transformed_query = $transformer->transform_query( $original_query );
+
+				// Log the transformation for debugging
+				if ( $original_query !== $transformed_query ) {
+					// Modify the query in the params
+					$params->query = $transformed_query;
+				}
+
+				// Return null to continue with normal execution
+				return null;
+			},
+			10,
+			2
+		);
 	}
 
 	/**

@@ -117,6 +117,7 @@ use WPGraphQL\Type\ObjectType\Taxonomy;
 use WPGraphQL\Type\ObjectType\Theme;
 use WPGraphQL\Type\ObjectType\User;
 use WPGraphQL\Type\ObjectType\UserRole;
+use WPGraphQL\Type\OneOfInput\UserBy;
 use WPGraphQL\Type\WPConnectionType;
 use WPGraphQL\Type\WPEnumType;
 use WPGraphQL\Type\WPInputObjectType;
@@ -384,6 +385,9 @@ class TypeRegistry {
 		DateQueryInput::register_type();
 		PostObjectsConnectionOrderbyInput::register_type();
 		UsersConnectionOrderbyInput::register_type();
+
+		// Register OneOf Input Types
+		UserBy::register_type();
 
 		/**
 		 * Register core connections
