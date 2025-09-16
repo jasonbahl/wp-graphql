@@ -647,12 +647,24 @@ class Request {
 				$params
 			);
 
+			/**
+			 * Allow the query variables to be determined by a filter.
+			 *
+			 * @param array<string, mixed>|null       $variables
+			 * @param \GraphQL\Server\OperationParams $params
+			 */
+			$variables = apply_filters(
+				'graphql_execute_query_variables',
+				$params->variables ?? null,
+				$params
+			);
+
 			$result = GraphQL::executeQuery(
 				$this->schema,
 				$query,
 				$this->get_root_value(),
 				$this->app_context,
-				$params->variables ?? null,
+				$variables,
 				$params->operation ?? null,
 				$this->field_resolver,
 				$this->validation_rules

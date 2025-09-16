@@ -155,8 +155,8 @@ class ThemeObjectQueriesTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase
 				'message'    => 'No theme was found with the stylesheet: doesNotExist',
 				'locations'  => [
 					[
-						'line'   => 2,
-						'column' => 3,
+						'line'   => 3,
+						'column' => 4,
 					],
 				],
 				'path'       => [

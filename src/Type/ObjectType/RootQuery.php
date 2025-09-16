@@ -178,39 +178,69 @@ class RootQuery {
 								return __( 'Returns a Comment', 'wp-graphql' );
 							},
 							'args'        => [
+								'by' => [
+									'type'        => [ 'non_null' => 'CommentBy' ],
+									'description' => static function () {
+										return __( 'Arguments for identifying the comment', 'wp-graphql' );
+									},
+								],
+							],
+							'legacy_args' => [
 								'id'     => [
-									'type'        => [
-										'non_null' => 'ID',
-									],
+									'type'        => [ 'non_null' => 'ID' ],
 									'description' => static function () {
 										return __( 'Unique identifier for the comment node.', 'wp-graphql' );
 									},
+									'maps_to'     => 'by',
 								],
 								'idType' => [
 									'type'        => 'CommentNodeIdTypeEnum',
 									'description' => static function () {
 										return __( 'Type of unique identifier to fetch a comment by. Default is Global ID', 'wp-graphql' );
 									},
+									'maps_to'     => 'by',
+									'transform'   => static function ( array $legacy_values ): array {
+										$by_value = [];
+
+										if ( isset( $legacy_values['id'] ) ) {
+											$id_type  = $legacy_values['idType'] ?? 'ID';
+											$id_value = $legacy_values['id'];
+
+											// Transform based on idType value
+											switch ( $id_type ) {
+												case 'database_id':
+												case 'DATABASE_ID':
+													$by_value['databaseId'] = $id_value;
+													break;
+												case 'global_id':
+												case 'ID':
+												case 'id':
+												default:
+													$by_value['id'] = $id_value;
+													break;
+											}
+										}
+
+										return [ 'value' => $by_value ];
+									},
 								],
 							],
 							'resolve'     => static function ( $_source, array $args, AppContext $context ) {
-								$id_type = isset( $args['idType'] ) ? $args['idType'] : 'id';
+								// Handle the oneOf "by" argument
+								$by = $args['by'];
+								$id = null;
 
-								switch ( $id_type ) {
-									case 'database_id':
-										$id = absint( $args['id'] );
-										break;
-									default:
-										$id_components = Relay::fromGlobalId( $args['id'] );
-										if ( ! isset( $id_components['id'] ) || ! absint( $id_components['id'] ) ) {
-											throw new UserError( esc_html__( 'The ID input is invalid', 'wp-graphql' ) );
-										}
-										$id = absint( $id_components['id'] );
-
-										break;
+								if ( isset( $by['databaseId'] ) ) {
+									$id = absint( $by['databaseId'] );
+								} elseif ( isset( $by['id'] ) ) {
+									$id_components = Relay::fromGlobalId( $by['id'] );
+									if ( ! isset( $id_components['id'] ) || ! absint( $id_components['id'] ) ) {
+										throw new UserError( esc_html__( 'The ID input is invalid', 'wp-graphql' ) );
+									}
+									$id = absint( $id_components['id'] );
 								}
 
-								return $context->get_loader( 'comment' )->load_deferred( $id );
+								return ! empty( $id ) ? $context->get_loader( 'comment' )->load_deferred( $id ) : null;
 							},
 						],
 						'contentNode' => [

@@ -400,35 +400,50 @@ final class WPGraphQL {
 		); // Run after default field registration
 
 		/**
-		 * Hook into WPGraphQL request lifecycle to transform queries
-		 * This runs AFTER schema is built but BEFORE query execution
+		 * Hook into WPGraphQL request lifecycle to transform legacy arguments
+		 * This runs right before GraphQL validation and execution
 		 */
 		add_filter(
-			'pre_graphql_execute_request',
-			static function ( $response, $request ) {
-				// Don't intercept if there's already a response
-				if ( null !== $response ) {
-					return $response;
+			'graphql_execute_query_params',
+			static function ( $query, $params ) {
+				// Skip if no query
+				if ( empty( $query ) ) {
+					return $query;
 				}
 
-				// Get the query from the request
-				$params = $request->params;
-				if ( ! $params || empty( $params->query ) ) {
-					return $response;
+				// Get variables from params
+				$variables = [];
+				if ( $params && isset( $params->variables ) && is_array( $params->variables ) ) {
+					$variables = $params->variables;
 				}
 
-				$transformer       = new \WPGraphQL\Utils\QueryTransformer();
-				$original_query    = $params->query;
-				$transformed_query = $transformer->transform_query( $original_query );
+				// Transform the request
+				$result = \WPGraphQL\Utils\UnifiedLegacyTransformer::transform_request( $query, $variables );
 
-				// Log the transformation for debugging
-				if ( $original_query !== $transformed_query ) {
-					// Modify the query in the params
-					$params->query = $transformed_query;
+				// Store transformed variables in params for the variables filter
+				if ( $params && $result['variables'] !== $variables ) {
+					$params->_transformed_variables = $result['variables'];
 				}
 
-				// Return null to continue with normal execution
-				return null;
+				// Return transformed query
+				return $result['query'];
+			},
+			10,
+			2
+		);
+
+		/**
+		 * Hook into WPGraphQL variables to apply legacy argument transformations
+		 */
+		add_filter(
+			'graphql_execute_query_variables',
+			static function ( $variables, $params ) {
+				// If we have transformed variables from the query filter, use them
+				if ( $params && isset( $params->_transformed_variables ) ) {
+					return $params->_transformed_variables;
+				}
+
+				return $variables;
 			},
 			10,
 			2

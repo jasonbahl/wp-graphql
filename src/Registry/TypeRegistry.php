@@ -117,6 +117,7 @@ use WPGraphQL\Type\ObjectType\Taxonomy;
 use WPGraphQL\Type\ObjectType\Theme;
 use WPGraphQL\Type\ObjectType\User;
 use WPGraphQL\Type\ObjectType\UserRole;
+use WPGraphQL\Type\OneOfInput\CommentBy;
 use WPGraphQL\Type\OneOfInput\UserBy;
 use WPGraphQL\Type\WPConnectionType;
 use WPGraphQL\Type\WPEnumType;
@@ -387,6 +388,7 @@ class TypeRegistry {
 		UsersConnectionOrderbyInput::register_type();
 
 		// Register OneOf Input Types
+		CommentBy::register_type();
 		UserBy::register_type();
 
 		/**

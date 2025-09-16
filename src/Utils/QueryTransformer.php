@@ -44,6 +44,13 @@ class QueryTransformer {
 	private array $variable_transformations = [];
 
 	/**
+	 * Array tracking variables that should be removed from operation definitions
+	 *
+	 * @var array<string, bool>
+	 */
+	private array $variables_to_remove = [];
+
+	/**
 	 * Transform a GraphQL query string by applying legacy argument mappings
 	 *
 	 * @param string $query The original GraphQL query string
@@ -269,10 +276,13 @@ class QueryTransformer {
 	 * @param array<string, mixed> $rule The transformation rule
 	 */
 	private function track_variable_transformations( array $legacy_values, array $modern_value, array $rule ): void {
+		// Track variables used in the modern value (these get transformed)
+		$used_variables = [];
 		foreach ( $modern_value as $field_name => $field_value ) {
 			if ( is_array( $field_value ) && isset( $field_value['_variable'] ) ) {
 				$variable_node = $field_value['_variable'];
 				$variable_name = $variable_node->name->value;
+				$used_variables[ $variable_name ] = true;
 
 				// Check if there's an explicit target type for this variable
 				$target_type = null;
@@ -288,6 +298,19 @@ class QueryTransformer {
 					'target_type'   => $target_type,
 					'field_name'    => $field_name,
 				];
+			}
+		}
+
+		// Track variables that were in legacy values but not used in modern value (these get removed)
+		foreach ( $legacy_values as $legacy_arg_name => $legacy_value ) {
+			if ( is_array( $legacy_value ) && isset( $legacy_value['_variable'] ) ) {
+				$variable_node = $legacy_value['_variable'];
+				$variable_name = $variable_node->name->value;
+
+				// If this variable is not used in the modern value, mark it for removal
+				if ( ! isset( $used_variables[ $variable_name ] ) ) {
+					$this->variables_to_remove[ $variable_name ] = true;
+				}
 			}
 		}
 	}
@@ -325,7 +348,7 @@ class QueryTransformer {
 	 * @return \GraphQL\Language\AST\OperationDefinitionNode The transformed operation definition node
 	 */
 	private function transform_operation_variables( OperationDefinitionNode $operation_node ): OperationDefinitionNode {
-		if ( empty( $this->variable_transformations ) || empty( $operation_node->variableDefinitions ) ) {
+		if ( ( empty( $this->variable_transformations ) && empty( $this->variables_to_remove ) ) || empty( $operation_node->variableDefinitions ) ) {
 			return $operation_node; // No variable transformations needed
 		}
 
@@ -333,6 +356,11 @@ class QueryTransformer {
 
 		foreach ( $operation_node->variableDefinitions as $var_def ) {
 			$variable_name = $var_def->variable->name->value;
+
+			// Skip variables marked for removal
+			if ( isset( $this->variables_to_remove[ $variable_name ] ) ) {
+				continue;
+			}
 
 			if ( isset( $this->variable_transformations[ $variable_name ] ) ) {
 				$transformation = $this->variable_transformations[ $variable_name ];

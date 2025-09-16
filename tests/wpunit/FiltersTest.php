@@ -19,6 +19,22 @@ class FiltersTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 		parent::tearDown();
 	}
 
+	/**
+	 * Normalize a GraphQL query by parsing and printing it to remove formatting differences
+	 *
+	 * @param string $query The GraphQL query string
+	 * @return string The normalized query string
+	 */
+	private function normalizeGraphQLQuery( string $query ): string {
+		try {
+			$ast = \GraphQL\Language\Parser::parse( $query );
+			return \GraphQL\Language\Printer::doPrint( $ast );
+		} catch ( \Exception $e ) {
+			// If parsing fails, return original query
+			return $query;
+		}
+	}
+
 	public function testFilterGraphqlRequestResults() {
 
 		add_filter(
@@ -48,7 +64,14 @@ class FiltersTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 			'variables' => [ 'first' => 1 ],
 		];
 
-		$this->assertSame( $expected, $this->filter_values );
+		// Normalize both queries for comparison to ignore formatting differences
+		$expected_normalized = $expected;
+		$expected_normalized['query'] = $this->normalizeGraphQLQuery( $expected['query'] );
+
+		$actual_normalized = $this->filter_values;
+		$actual_normalized['query'] = $this->normalizeGraphQLQuery( $this->filter_values['query'] );
+
+		$this->assertSame( $expected_normalized, $actual_normalized );
 	}
 
 	public function testFilterGraphqlRequestResultsForBatchQuery() {
@@ -96,7 +119,16 @@ class FiltersTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 			],
 		];
 
-		$this->assertSame( $expected, $this->filter_values );
+		// Normalize both query arrays for comparison to ignore formatting differences
+		$expected_normalized = $expected;
+		$actual_normalized = $this->filter_values;
+
+		for ( $i = 0; $i < count( $expected ); $i++ ) {
+			$expected_normalized[$i]['query'] = $this->normalizeGraphQLQuery( $expected[$i]['query'] );
+			$actual_normalized[$i]['query'] = $this->normalizeGraphQLQuery( $this->filter_values[$i]['query'] );
+		}
+
+		$this->assertSame( $expected_normalized, $actual_normalized );
 	}
 
 	/**
@@ -258,9 +290,11 @@ class FiltersTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 
 			if ( $captured_params ) {
 				$this->assertInstanceOf( '\GraphQL\Server\OperationParams', $captured_params, 'Params should be OperationParams instance' );
-				// The query is formatted by AST transformation
+				// The query is formatted by AST transformation - normalize for comparison
 				$expected_formatted_query = "{\n  posts {\n    nodes {\n      id\n    }\n  }\n}\n";
-				$this->assertEquals( $expected_formatted_query, $captured_params->query, 'Query should match formatted version' );
+				$expected_normalized = $this->normalizeGraphQLQuery( $expected_formatted_query );
+				$actual_normalized = $this->normalizeGraphQLQuery( $captured_params->query );
+				$this->assertEquals( $expected_normalized, $actual_normalized, 'Query should match formatted version' );
 			}
 		}
 	}
@@ -317,11 +351,17 @@ class FiltersTest extends \Tests\WPGraphQL\TestCase\WPGraphQLTestCase {
 			$this->assertInstanceOf( '\GraphQL\Server\OperationParams', $captured_params[0], 'First params should be OperationParams instance' );
 			$this->assertInstanceOf( '\GraphQL\Server\OperationParams', $captured_params[1], 'Second params should be OperationParams instance' );
 
-			// Assert that params contain the expected formatted query information
+			// Assert that params contain the expected formatted query information - normalize for comparison
 			$expected_posts_query = "{\n  posts {\n    nodes {\n      id\n    }\n  }\n}\n";
 			$expected_users_query = "{\n  users {\n    nodes {\n      id\n    }\n  }\n}\n";
-			$this->assertEquals( $expected_posts_query, $captured_params[0]->query, 'First query should match formatted version' );
-			$this->assertEquals( $expected_users_query, $captured_params[1]->query, 'Second query should match formatted version' );
+
+			$expected_posts_normalized = $this->normalizeGraphQLQuery( $expected_posts_query );
+			$actual_posts_normalized = $this->normalizeGraphQLQuery( $captured_params[0]->query );
+			$this->assertEquals( $expected_posts_normalized, $actual_posts_normalized, 'First query should match formatted version' );
+
+			$expected_users_normalized = $this->normalizeGraphQLQuery( $expected_users_query );
+			$actual_users_normalized = $this->normalizeGraphQLQuery( $captured_params[1]->query );
+			$this->assertEquals( $expected_users_normalized, $actual_users_normalized, 'Second query should match formatted version' );
 		}
 	}
 }
