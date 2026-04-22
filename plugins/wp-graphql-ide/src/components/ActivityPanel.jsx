@@ -1,31 +1,32 @@
 import React, { useState } from 'react';
-import { Button, ResizableBox } from '@wordpress/components';
-import { Icon, close } from '@wordpress/icons';
-import { useSelect, useDispatch } from '@wordpress/data';
+import { ResizableBox } from '@wordpress/components';
+import { useSelect } from '@wordpress/data';
 
-// Persist panel width across open/close cycles via window.localStorage.
 function getPersistedWidth() {
 	try {
 		const w = parseInt(
 			window.localStorage.getItem('wpgraphql_ide_panel_width'),
 			10
 		);
-		return w > 0 ? w : 300;
+		return w > 0 ? w : 280;
 	} catch {
-		return 300;
+		return 280;
 	}
 }
 
+/**
+ * Collapsible side panel — shows the active panel's content.
+ *
+ * Returns null when no panel is active so the editor area expands to fill
+ * the space. The vertical activity bar in IDELayout always remains visible
+ * and owns the toggle buttons.
+ */
 const ActivityPanel = () => {
 	const [panelWidth, setPanelWidth] = useState(getPersistedWidth);
 
 	const visiblePanel = useSelect(
 		(select) => select('wpgraphql-ide/activity-bar').visiblePanel(),
 		[]
-	);
-
-	const { toggleActivityPanelVisibility } = useDispatch(
-		'wpgraphql-ide/activity-bar'
 	);
 
 	if (!visiblePanel) {
@@ -39,12 +40,7 @@ const ActivityPanel = () => {
 			size={{ width: panelWidth, height: '100%' }}
 			minWidth={200}
 			maxWidth={600}
-			enable={{
-				top: false,
-				right: true,
-				bottom: false,
-				left: false,
-			}}
+			enable={{ right: true }}
 			onResizeStop={(e, d, elt) => {
 				const w = elt.offsetWidth;
 				setPanelWidth(w);
@@ -57,23 +53,16 @@ const ActivityPanel = () => {
 					// localStorage unavailable
 				}
 			}}
-			className="wpgraphql-ide-activity-panel"
+			className="wpgraphql-ide-side-panel"
 		>
-			<div className="wpgraphql-ide-panel-header">
-				<span className="wpgraphql-ide-panel-title">
+			{/* Panel title */}
+			<div className="wpgraphql-ide-side-panel-header">
+				<span className="wpgraphql-ide-side-panel-title">
 					{visiblePanel.title}
 				</span>
-				<Button
-					className="wpgraphql-ide-panel-close"
-					onClick={() =>
-						toggleActivityPanelVisibility(visiblePanel.name)
-					}
-					aria-label="Close panel"
-					size="small"
-				>
-					<Icon icon={close} size={20} />
-				</Button>
 			</div>
+
+			{/* Panel content */}
 			<div className="wpgraphql-ide-plugin">
 				{PluginContent ? <PluginContent /> : null}
 			</div>
