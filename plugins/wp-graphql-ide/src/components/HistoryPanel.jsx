@@ -4,18 +4,27 @@ import { useSelect, useDispatch } from '@wordpress/data';
 import { dateI18n } from '@wordpress/date';
 import { Icon, backup } from '@wordpress/icons';
 
-/**
- * History panel icon for the activity bar.
- */
 export const HistoryIcon = () => <Icon icon={backup} />;
 
+function extractOperationName(query) {
+	if (!query) {
+		return null;
+	}
+	const match = query.match(/(?:query|mutation|subscription)\s+(\w+)/);
+	return match ? match[1] : null;
+}
+
 /**
- * History panel content.
+ * Global execution history across all open documents.
  *
- * Displays the execution history for the active document. Clicking
- * an entry restores its variables, headers, and response.
+ * Entries are sorted newest-first. Clicking an entry switches to that
+ * document and restores its query/variables/headers in the editors.
  */
 export function HistoryPanel() {
+	const allDocuments = useSelect(
+		(select) => select('wpgraphql-ide/document-editor').getDocuments(),
+		[]
+	);
 	const activeDocument = useSelect(
 		(select) => select('wpgraphql-ide/document-editor').getActiveDocument(),
 		[]
@@ -23,34 +32,41 @@ export function HistoryPanel() {
 
 	const { setQuery, setVariables, setHeaders } =
 		useDispatch('wpgraphql-ide/app');
+	const { saveDocument, switchTab } = useDispatch(
+		'wpgraphql-ide/document-editor'
+	);
 
-	const { saveDocument } = useDispatch('wpgraphql-ide/document-editor');
+	const allHistory = allDocuments
+		.flatMap((doc) =>
+			(doc.history || []).map((entry) => ({
+				...entry,
+				docId: doc.id,
+				docLabel:
+					extractOperationName(entry.query) ||
+					doc.title ||
+					'Untitled',
+			}))
+		)
+		.sort((a, b) => b.timestamp - a.timestamp);
 
-	const clearHistory = () => {
-		if (activeDocument) {
-			saveDocument(activeDocument.id, { history: [] });
-		}
+	const clearAllHistory = () => {
+		allDocuments.forEach((doc) => {
+			if ((doc.history || []).length > 0) {
+				saveDocument(doc.id, { history: [] });
+			}
+		});
 	};
 
-	const history = activeDocument?.history || [];
-
 	const restoreEntry = (entry) => {
+		if (String(entry.docId) !== String(activeDocument?.id)) {
+			switchTab(String(entry.docId));
+		}
 		setQuery(entry.query || '');
 		setVariables(entry.variables || '');
 		setHeaders(entry.headers || '');
 	};
 
-	if (!activeDocument) {
-		return (
-			<div className="wpgraphql-ide-history-panel">
-				<p className="wpgraphql-ide-history-empty">
-					No document selected.
-				</p>
-			</div>
-		);
-	}
-
-	if (history.length === 0) {
+	if (allHistory.length === 0) {
 		return (
 			<div className="wpgraphql-ide-history-panel">
 				<p className="wpgraphql-ide-history-empty">
@@ -66,16 +82,16 @@ export function HistoryPanel() {
 				<Button
 					variant="link"
 					isDestructive
-					onClick={clearHistory}
+					onClick={clearAllHistory}
 					size="small"
 				>
-					Clear history
+					Clear all history
 				</Button>
 			</div>
 			<ul className="wpgraphql-ide-history-list">
-				{[...history].reverse().map((entry, index) => (
+				{allHistory.map((entry, index) => (
 					<li
-						key={`${entry.timestamp}-${index}`}
+						key={`${entry.docId}-${entry.timestamp}-${index}`}
 						className="wpgraphql-ide-history-entry"
 					>
 						<button
@@ -89,20 +105,20 @@ export function HistoryPanel() {
 								>
 									{entry.status === 'success' ? 'OK' : 'ERR'}
 								</span>
+								<span className="wpgraphql-ide-history-doc-label">
+									{entry.docLabel}
+								</span>
 								<span className="wpgraphql-ide-history-duration">
 									{entry.duration_ms}ms
 								</span>
-								<span className="wpgraphql-ide-history-entry-time">
-									{dateI18n(
-										'M j, g:i A',
-										entry.timestamp * 1000
-									)}
-								</span>
+							</div>
+							<div className="wpgraphql-ide-history-entry-time">
+								{dateI18n('M j, g:i A', entry.timestamp * 1000)}
 							</div>
 							{entry.query && (
 								<div className="wpgraphql-ide-history-entry-preview">
-									{entry.query.slice(0, 120)}
-									{entry.query.length > 120 ? '...' : ''}
+									{entry.query.slice(0, 100)}
+									{entry.query.length > 100 ? '…' : ''}
 								</div>
 							)}
 						</button>
