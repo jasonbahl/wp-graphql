@@ -434,8 +434,8 @@ export function IDELayout({ fetcher, onClose }) {
 	const settingsUrl =
 		typeof window !== 'undefined' && window.wpApiSettings?.root
 			? window.location.origin +
-				'/wp-admin/admin.php?page=graphql-general-settings'
-			: '/wp-admin/admin.php?page=graphql-general-settings';
+				'/wp-admin/admin.php?page=graphql-settings'
+			: '/wp-admin/admin.php?page=graphql-settings';
 
 	const ComposerContent = queryComposerPanel?.content || null;
 
