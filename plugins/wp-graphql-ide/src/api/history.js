@@ -1,18 +1,37 @@
 import { gql } from './graphql-client';
+import {
+	getLocalHistory,
+	createLocalHistoryEntry,
+	deleteLocalHistoryEntry,
+	clearLocalHistory,
+} from './history-local';
 
 /**
- * Execution-history client. As of this commit, history runs through
- * GraphQL — the `IdeHistoryEntry` type exposes every meta field the
- * REST shape carried (queryString / variables / headers / durationMs /
- * executionStatus / documentId / isAuthenticated / httpMethod), and
- * the auto-generated mutations cover create + delete.
+ * Execution-history client. Routes between two backends based on auth
+ * state, picked up at call time from `window.WPGRAPHQL_IDE_DATA`:
  *
- * Per-user scoping is enforced server-side via a connection filter on
- * `IdeHistoryEntry`; clients don't pass an author argument. The
- * 50-entry cap is enforced client-side at write time (delete the
- * oldest if the count exceeds the limit) — same semantics as the REST
- * path it replaces.
+ *   - **Logged-in users** → server-backed `graphql_ide_history` CPT
+ *     via GraphQL. The `IdeHistoryEntry` type exposes every meta field
+ *     (queryString / variables / headers / durationMs / executionStatus
+ *     / documentId / isAuthenticated / httpMethod), and the auto-
+ *     generated mutations cover create + delete. Per-user scoping is
+ *     enforced server-side via a connection filter; clients don't pass
+ *     an author argument.
+ *
+ *   - **Anonymous public-endpoint visitors** → browser-local bucket
+ *     via `./history-local.js`. Same model GraphiQL itself uses (per-
+ *     browser, multi-anon-user shared). Lets non-authenticated devs
+ *     working against `/graphql` still get the history affordance.
+ *
+ * The 50-entry cap is enforced client-side on both paths.
  */
+
+function isLoggedIn() {
+	return (
+		typeof window !== 'undefined' &&
+		!!window.WPGRAPHQL_IDE_DATA?.isUserLoggedIn
+	);
+}
 
 const MAX_ENTRIES = 50;
 
@@ -62,11 +81,15 @@ function adaptHistoryEntry(node) {
 }
 
 /**
- * Fetch execution history for the current user.
+ * Fetch execution history for the current visitor. Routes to the
+ * server CPT when logged in, the localStorage bucket when anonymous.
  *
  * @return {Promise<Object[]>} Newest-first.
  */
 export async function getHistory() {
+	if (!isLoggedIn()) {
+		return getLocalHistory();
+	}
 	const data = await gql(
 		`query GetIdeHistory($first: Int!) {
 			ideHistoryEntries(first: $first, where: { stati: [PUBLISH], orderby: { field: DATE, order: DESC } }) {
@@ -94,6 +117,10 @@ export async function getHistory() {
  * @return {Promise<Object>} Adapted entry — see `getHistory` for shape.
  */
 export async function createHistoryEntry(entry) {
+	if (!isLoggedIn()) {
+		return createLocalHistoryEntry(entry);
+	}
+
 	// `_graphql_ide_document_id` is type integer on the underlying meta.
 	// Callers can hand us a temp-ID string (`temp-…`), undefined, or any
 	// other non-numeric — coerce to a positive integer or 0 so the
@@ -139,6 +166,9 @@ export async function createHistoryEntry(entry) {
  * @return {Promise<{deletedId:number}>}
  */
 export async function deleteHistoryEntry(id) {
+	if (!isLoggedIn()) {
+		return deleteLocalHistoryEntry(id);
+	}
 	const data = await gql(
 		`mutation DeleteIdeHistoryEntry($input: DeleteIdeHistoryEntryInput!) {
 			deleteIdeHistoryEntry(input: $input) {
@@ -162,5 +192,8 @@ export async function deleteHistoryEntry(id) {
  * @return {Promise<void>}
  */
 export async function clearHistory(ids) {
+	if (!isLoggedIn()) {
+		return clearLocalHistory(ids);
+	}
 	await Promise.all(ids.map((id) => deleteHistoryEntry(id)));
 }

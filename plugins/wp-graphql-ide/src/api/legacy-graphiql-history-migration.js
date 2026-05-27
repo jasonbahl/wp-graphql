@@ -1,21 +1,27 @@
 /**
  * One-shot migration of 4.x GraphiQL query history into the 5.0
- * server-backed history CPT.
+ * history backend.
  *
  * 4.x stored execution history under the GraphiQL default
  * `graphiql:queries` localStorage key (an array of `{ query,
  * variables, headers, operationName, favorite, label }` entries).
- * 5.0 persists history as `graphql_ide_history` posts on the server,
- * scoped per user and capped at 50 entries.
+ * 5.0 persists history through the `createHistoryEntry` router in
+ * `./history.js`, which dispatches to:
+ *   - the per-user `graphql_ide_history` CPT for logged-in visitors,
+ *   - the browser-local bucket for anonymous public-endpoint visitors.
  *
- * Migration semantics:
- *   - Skipped entirely on the public endpoint (anonymous visitors
- *     have no user-meta target; they never had server history to
- *     begin with).
- *   - Reads the legacy key, posts each entry to the server through
- *     `createHistoryEntry`, then clears the legacy key.
+ * This migrator doesn't care which — it just hands each legacy entry
+ * to `createHistoryEntry` and lets the router pick the backend. That
+ * means an anonymous visitor who upgraded from 4.x sees their old
+ * queries reappear in the local panel, and a logged-in admin who
+ * upgraded sees them reappear in their account history. Symmetric.
+ *
+ * Migration semantics (independent of backend):
+ *   - One-shot. Records a flag so repeat boots are no-ops.
+ *   - Reads the legacy key, hands each entry to `createHistoryEntry`,
+ *     then clears the legacy key.
  *   - Marks itself complete *regardless of per-entry success* so a
- *     transient server hiccup doesn't cause repeat boots to duplicate
+ *     transient backend hiccup doesn't cause repeat boots to duplicate
  *     the entries that did succeed. Worst-case impact of a failure is
  *     losing some legacy history — recoverable by re-running queries.
  *   - Caps at the same 50-entry limit the runtime enforces; older
@@ -70,35 +76,29 @@ function normalizeEntry(entry) {
 		query,
 		variables: typeof entry.variables === 'string' ? entry.variables : '',
 		headers: typeof entry.headers === 'string' ? entry.headers : '',
-		// 4.x didn't track these — fill in safe defaults so the server
-		// type-checks succeed.
+		// 4.x didn't track these — fill in safe defaults. `is_authenticated`
+		// is deliberately omitted so each backend's own default applies
+		// (server CPT defaults to true since you must be logged in to
+		// hit it; local bucket defaults to false since you must be
+		// anonymous to land there).
 		duration_ms: 0,
 		status: '',
 		document_id: 0,
-		is_authenticated: true,
 		http_method: 'POST',
 	};
 }
 
 /**
- * Run the history migration if it hasn't already run. Skips the
- * server round-trip entirely on the public endpoint.
+ * Run the history migration if it hasn't already run. The backend
+ * (server CPT vs local bucket) is picked by `createHistoryEntry`'s
+ * router based on the current auth state, so this function takes no
+ * options.
  *
- * @param {Object}  [options]
- * @param {boolean} [options.endpointMode=false] Public-endpoint mode flag.
- * @return {Promise<{ migrated: boolean, attempted?: number, succeeded?: number, skipped?: 'public-endpoint' | 'flag' | 'no-storage' | 'no-legacy-key' | 'empty' | 'parse-error' }>}
+ * @return {Promise<{ migrated: boolean, attempted?: number, succeeded?: number, skipped?: 'flag' | 'no-storage' | 'no-legacy-key' | 'empty' | 'parse-error' }>}
  */
-export async function migrateLegacyHistory({ endpointMode = false } = {}) {
+export async function migrateLegacyHistory() {
 	if (!hasLocalStorage()) {
 		return { migrated: false, skipped: 'no-storage' };
-	}
-
-	if (endpointMode) {
-		// Don't even read the legacy key — public-endpoint visitors had
-		// no server-side history in 4.x or 5.0, so there's nothing to
-		// migrate and no flag to set (a returning logged-in admin
-		// should still get migration on the admin surface).
-		return { migrated: false, skipped: 'public-endpoint' };
 	}
 
 	try {

@@ -15,7 +15,6 @@ import {
 	reorderCollections as persistCollectionOrder,
 } from '../../api/documents';
 import { getPreferences, setPreference } from '../../api/preferences';
-import { endpointMode } from '../../bootstrap';
 
 const VALID_SORT_MODES = ['manual', 'title_asc', 'modified_desc', 'status'];
 
@@ -212,12 +211,14 @@ const actions = {
 		() =>
 		async ({ dispatch }) => {
 			// One-shot upgrade path from 4.x: if the previous IDE left
-			// `graphiql:queries` in localStorage, post each entry to the
-			// new server-backed history CPT before fetching. No-op on
-			// the public endpoint (anonymous visitors have no server
-			// history) and on second boot (migrator records its own
-			// flag). Awaited so the fetch below sees the migrated rows.
-			await migrateLegacyHistory({ endpointMode });
+			// `graphiql:queries` in localStorage, hand each entry to
+			// `createHistoryEntry` before fetching. The api/history
+			// router picks the backend by auth state — server CPT for
+			// logged-in users, local bucket for anonymous visitors —
+			// so the same migrator works for both. No-op on second boot
+			// (migrator records its own flag). Awaited so the fetch
+			// below sees the migrated rows.
+			await migrateLegacyHistory();
 
 			try {
 				const entries = await fetchHistory();
@@ -229,21 +230,17 @@ const actions = {
 		},
 
 	/**
-	 * Add a new history entry and persist it via the REST API.
-	 * Prunes the oldest entry if the limit is exceeded.
+	 * Add a new history entry. The `api/history` router decides where
+	 * it lands — server CPT for logged-in users, browser-local bucket
+	 * for anonymous public-endpoint visitors. Prunes the oldest entry
+	 * on the server path if the limit is exceeded; the local backend
+	 * prunes implicitly.
 	 *
 	 * @param {Object} entry History entry data.
 	 */
 	addHistoryEntry:
 		(entry) =>
 		async ({ dispatch, select: sel }) => {
-			// Endpoint mode hides the History panel entirely and the
-			// graphql-ide-history REST route requires manage_graphql_ide,
-			// so persisting an entry would always 403. Skip the call
-			// and the corresponding console error.
-			if (endpointMode) {
-				return;
-			}
 			try {
 				const current = sel.getHistory();
 				const oldestId =

@@ -15,24 +15,35 @@ describe('migrateLegacyHistory', () => {
 		createHistoryEntry.mockResolvedValue({ id: 1 });
 	});
 
-	it('skips with public-endpoint marker when endpointMode is true', async () => {
+	it('runs for anonymous visitors too and hands entries to createHistoryEntry', async () => {
+		// The migrator no longer gates on endpointMode — the
+		// createHistoryEntry router decides the backend by auth state.
+		// What this test asserts is that anonymous visitors aren't
+		// short-circuited the way they were in the first cut.
 		window.localStorage.setItem(
 			LEGACY_KEY,
 			JSON.stringify([{ query: '{ posts { id } }' }])
 		);
 
-		const result = await migrateLegacyHistory({ endpointMode: true });
-		expect(result).toEqual({
-			migrated: false,
-			skipped: 'public-endpoint',
-		});
+		const result = await migrateLegacyHistory();
+		expect(result.migrated).toBe(true);
+		expect(createHistoryEntry).toHaveBeenCalledTimes(1);
+		expect(window.localStorage.getItem(LEGACY_KEY)).toBeNull();
+		expect(window.localStorage.getItem(FLAG_KEY)).toBe('1');
+	});
 
-		// Critical: the legacy key is NOT removed, and the flag is NOT set —
-		// a returning logged-in admin should still get migration on the
-		// admin surface.
-		expect(window.localStorage.getItem(LEGACY_KEY)).not.toBeNull();
-		expect(window.localStorage.getItem(FLAG_KEY)).toBeNull();
-		expect(createHistoryEntry).not.toHaveBeenCalled();
+	it('omits is_authenticated so each backend default applies', async () => {
+		// Server backend defaults to true (must be logged in to hit it);
+		// local backend defaults to false (must be anon to land there).
+		// Migrator stays neutral so the same call works for both.
+		window.localStorage.setItem(
+			LEGACY_KEY,
+			JSON.stringify([{ query: '{ posts { id } }' }])
+		);
+
+		await migrateLegacyHistory();
+		const payload = createHistoryEntry.mock.calls[0][0];
+		expect(payload).not.toHaveProperty('is_authenticated');
 	});
 
 	it('marks complete and skips when no legacy key is present', async () => {
@@ -122,7 +133,6 @@ describe('migrateLegacyHistory', () => {
 			duration_ms: 0,
 			status: '',
 			document_id: 0,
-			is_authenticated: true,
 			http_method: 'POST',
 		});
 		expect(createHistoryEntry).toHaveBeenNthCalledWith(2, {
@@ -132,7 +142,6 @@ describe('migrateLegacyHistory', () => {
 			duration_ms: 0,
 			status: '',
 			document_id: 0,
-			is_authenticated: true,
 			http_method: 'POST',
 		});
 
