@@ -5,6 +5,7 @@ import {
 	deleteLocalHistoryEntry,
 	clearLocalHistory,
 } from './history-local';
+import { HISTORY_ENTRY_FRAGMENT } from '../components/HistoryEntry';
 
 /**
  * Execution-history client. Routes between two backends based on auth
@@ -34,20 +35,6 @@ function isLoggedIn() {
 }
 
 const MAX_ENTRIES = 50;
-
-const HISTORY_FIELDS = `
-	id
-	databaseId
-	date
-	queryString
-	variables
-	headers
-	durationMs
-	executionStatus
-	documentId
-	isAuthenticated
-	httpMethod
-`;
 
 function encodePostId(databaseId) {
 	return typeof btoa === 'function'
@@ -91,9 +78,10 @@ export async function getHistory() {
 		return getLocalHistory();
 	}
 	const data = await gql(
-		`query GetIdeHistory($first: Int!) {
+		`${HISTORY_ENTRY_FRAGMENT}
+		query GetIdeHistory($first: Int!) {
 			ideHistoryEntries(first: $first, where: { stati: [PUBLISH], orderby: { field: DATE, order: DESC } }) {
-				nodes { ${HISTORY_FIELDS} }
+				nodes { ...IdeHistoryEntryFields }
 			}
 		}`,
 		{ first: MAX_ENTRIES }
@@ -141,9 +129,10 @@ export async function createHistoryEntry(entry) {
 	};
 
 	const data = await gql(
-		`mutation CreateIdeHistoryEntry($input: CreateIdeHistoryEntryInput!) {
+		`${HISTORY_ENTRY_FRAGMENT}
+		mutation CreateIdeHistoryEntry($input: CreateIdeHistoryEntryInput!) {
 			createIdeHistoryEntry(input: $input) {
-				ideHistoryEntry { ${HISTORY_FIELDS} }
+				ideHistoryEntry { ...IdeHistoryEntryFields }
 			}
 		}`,
 		{ input }

@@ -5,33 +5,12 @@ import { useSelect, useDispatch } from '@wordpress/data';
 import { Icon, backup } from '@wordpress/icons';
 import hooks from '../wordpress-hooks';
 import { useDialog } from './dialogs/DialogProvider';
-import { deriveDocTitle } from '../utils/derive-doc-title';
-
-const HISTORY_TIME_FORMATTER = new Intl.DateTimeFormat(undefined, {
-	month: 'short',
-	day: 'numeric',
-	hour: 'numeric',
-	minute: '2-digit',
-	hour12: true,
-});
+import { HistoryEntry } from './HistoryEntry';
 
 /**
  * History panel icon for the activity bar.
  */
 export const HistoryIcon = () => <Icon icon={backup} />;
-
-/**
- * Extract a clean one-line preview from a GraphQL query string.
- *
- * @param {string} query Raw query string.
- * @return {string} Collapsed single-line preview.
- */
-function queryPreview(query) {
-	if (!query) {
-		return '';
-	}
-	return query.replace(/\s+/g, ' ').trim().slice(0, 100);
-}
 
 /**
  * History panel content.
@@ -94,81 +73,14 @@ export function HistoryPanel() {
 	return (
 		<div className="wpgraphql-ide-history-panel">
 			<ul className="wpgraphql-ide-history-list">
-				{history.map((entry) => {
-					const derived = deriveDocTitle(entry.query);
-					// `deriveDocTitle` returns the literal 'Untitled' fallback;
-					// matching the literal here is the contract — translation
-					// happens at display time below.
-					const label = derived === 'Untitled' ? null : derived;
-
-					return (
-						<li
-							key={entry.id}
-							className="wpgraphql-ide-history-entry"
-						>
-							<button
-								type="button"
-								className="wpgraphql-ide-history-entry-button"
-								onClick={() => restoreEntry(entry)}
-							>
-								<div className="wpgraphql-ide-history-entry-header">
-									{avatarUrl && (
-										<img
-											src={avatarUrl}
-											alt={
-												entry.is_authenticated !== false
-													? __(
-															'Authenticated',
-															'wpgraphql-ide'
-														)
-													: __(
-															'Public',
-															'wpgraphql-ide'
-														)
-											}
-											className={`wpgraphql-ide-history-avatar${entry.is_authenticated === false ? ' is-public' : ''}`}
-										/>
-									)}
-									<span className="wpgraphql-ide-history-method">
-										{entry.http_method || 'POST'}
-									</span>
-									<span
-										className={`wpgraphql-ide-history-status wpgraphql-ide-history-status--${entry.status}`}
-									>
-										{entry.status === 'success'
-											? __('OK', 'wpgraphql-ide')
-											: __('ERR', 'wpgraphql-ide')}
-									</span>
-									<span className="wpgraphql-ide-history-duration">
-										{entry.duration_ms}ms
-									</span>
-									<span className="wpgraphql-ide-history-entry-time">
-										{HISTORY_TIME_FORMATTER.format(
-											new Date(entry.timestamp * 1000)
-										)}
-									</span>
-									<span className="wpgraphql-ide-history-entry-id">
-										#{entry.id}
-									</span>
-								</div>
-								<div className="wpgraphql-ide-history-entry-detail">
-									<span className="wpgraphql-ide-history-entry-label">
-										{label ||
-											__(
-												'Anonymous query',
-												'wpgraphql-ide'
-											)}
-									</span>
-									{entry.query && (
-										<span className="wpgraphql-ide-history-entry-preview">
-											{queryPreview(entry.query)}
-										</span>
-									)}
-								</div>
-							</button>
-						</li>
-					);
-				})}
+				{history.map((entry) => (
+					<HistoryEntry
+						key={entry.id}
+						entry={entry}
+						onRestore={restoreEntry}
+						avatarUrl={avatarUrl}
+					/>
+				))}
 			</ul>
 			<div className="wpgraphql-ide-history-footer">
 				<Button
