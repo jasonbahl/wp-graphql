@@ -6,6 +6,7 @@ import {
 	createHistoryEntry as postHistoryEntry,
 	clearHistory as deleteAllHistory,
 } from '../../api/history';
+import { migrateLegacyHistory } from '../../api/legacy-graphiql-history-migration';
 import {
 	getCollections as fetchCollections,
 	createCollection as postCollection,
@@ -210,6 +211,14 @@ const actions = {
 	loadHistory:
 		() =>
 		async ({ dispatch }) => {
+			// One-shot upgrade path from 4.x: if the previous IDE left
+			// `graphiql:queries` in localStorage, post each entry to the
+			// new server-backed history CPT before fetching. No-op on
+			// the public endpoint (anonymous visitors have no server
+			// history) and on second boot (migrator records its own
+			// flag). Awaited so the fetch below sees the migrated rows.
+			await migrateLegacyHistory({ endpointMode });
+
 			try {
 				const entries = await fetchHistory();
 				dispatch({ type: 'SET_HISTORY', history: entries });
