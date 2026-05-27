@@ -183,7 +183,10 @@ describe('migrateLegacyTabs', () => {
 		// the flag should keep us from touching it.
 		window.localStorage.setItem(
 			LEGACY_KEY,
-			JSON.stringify({ activeTabIndex: 0, tabs: [{ query: '{ replay }' }] })
+			JSON.stringify({
+				activeTabIndex: 0,
+				tabs: [{ query: '{ replay }' }],
+			})
 		);
 
 		const second = await migrateLegacyTabs();

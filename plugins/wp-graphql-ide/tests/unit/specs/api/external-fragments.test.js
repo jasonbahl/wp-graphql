@@ -6,9 +6,9 @@ import {
 
 describe('parseFragmentName', () => {
 	it('returns the fragment name for a valid fragment definition', () => {
-		expect(parseFragmentName('fragment PostFields on Post { id title }')).toBe(
-			'PostFields'
-		);
+		expect(
+			parseFragmentName('fragment PostFields on Post { id title }')
+		).toBe('PostFields');
 	});
 
 	it('returns null for non-fragment definitions', () => {
@@ -51,7 +51,9 @@ describe('injectExternalFragments', () => {
 	});
 
 	it('prepends a referenced external fragment to the query', () => {
-		const request = { query: 'query GetPosts { posts { nodes { ...PostFields } } }' };
+		const request = {
+			query: 'query GetPosts { posts { nodes { ...PostFields } } }',
+		};
 		const result = injectExternalFragments(request, [POST_FIELDS]);
 		expect(result).not.toBe(request);
 		expect(result.query).toContain(POST_FIELDS);
@@ -71,8 +73,13 @@ describe('injectExternalFragments', () => {
 	});
 
 	it('injects only referenced external fragments, not the rest', () => {
-		const request = { query: 'query Q { posts { nodes { ...PostFields } } }' };
-		const result = injectExternalFragments(request, [POST_FIELDS, USER_FIELDS]);
+		const request = {
+			query: 'query Q { posts { nodes { ...PostFields } } }',
+		};
+		const result = injectExternalFragments(request, [
+			POST_FIELDS,
+			USER_FIELDS,
+		]);
 		expect(result.query).toContain(POST_FIELDS);
 		expect(result.query).not.toContain(USER_FIELDS);
 	});
@@ -98,7 +105,9 @@ describe('injectExternalFragments', () => {
 	});
 
 	it('ignores external entries that are not fragment definitions', () => {
-		const request = { query: 'query Q { posts { nodes { ...PostFields } } }' };
+		const request = {
+			query: 'query Q { posts { nodes { ...PostFields } } }',
+		};
 		const result = injectExternalFragments(request, [
 			'query NotAFragment { x }',
 			'invalid graphql',
@@ -125,7 +134,9 @@ describe('injectExternalFragments', () => {
 	it('deduplicates name collisions across external fragments (first wins)', () => {
 		const first = 'fragment PostFields on Post { id }';
 		const second = 'fragment PostFields on Post { id title content }';
-		const request = { query: 'query Q { posts { nodes { ...PostFields } } }' };
+		const request = {
+			query: 'query Q { posts { nodes { ...PostFields } } }',
+		};
 		const result = injectExternalFragments(request, [first, second]);
 		expect(result.query).toContain(first);
 		expect(result.query).not.toContain(second);
@@ -163,7 +174,9 @@ describe('registerExternalFragmentInjector', () => {
 	it('registers an executeRequest filter consumer', () => {
 		const hooks = makeHooks();
 		registerExternalFragmentInjector(hooks);
-		expect(hooks.filters.get('wpgraphql-ide.executeRequest')).toHaveLength(1);
+		expect(hooks.filters.get('wpgraphql-ide.executeRequest')).toHaveLength(
+			1
+		);
 	});
 
 	it('is idempotent — re-registering does not stack consumers', () => {
@@ -171,7 +184,9 @@ describe('registerExternalFragmentInjector', () => {
 		registerExternalFragmentInjector(hooks);
 		registerExternalFragmentInjector(hooks);
 		registerExternalFragmentInjector(hooks);
-		expect(hooks.filters.get('wpgraphql-ide.executeRequest')).toHaveLength(1);
+		expect(hooks.filters.get('wpgraphql-ide.executeRequest')).toHaveLength(
+			1
+		);
 	});
 
 	it('reads externalFragments from window.WPGRAPHQL_IDE_DATA at filter time', () => {
