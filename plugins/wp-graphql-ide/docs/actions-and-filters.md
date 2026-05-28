@@ -1,4 +1,7 @@
-# Actions & Filters
+---
+title: "Actions & Filters"
+description: "PHP and JavaScript hooks for extending the WPGraphQL IDE — lifecycle, notices, the execute request/response/afterExecute pipeline, and 4.x → 5.0 migration notes."
+---
 
 ## PHP Actions
 
@@ -76,7 +79,7 @@ hooks.addAction( 'wpgraphql-ide.init', 'my-plugin/boot', () => { /* … */ } );
 
 ### Registration
 
-Each access function in `ACCESS_FUNCTIONS.md` fires one of these actions after a successful registration. Registration failures log to `console.error` and do not fire a paired action — see the [Migration from 4.x](#migration-from-4x) section if you previously relied on `register*Error` hooks.
+Each access function in [`access-functions.md`](./access-functions.md) fires one of these actions after a successful registration. Registration failures log to `console.error` and do not fire a paired action — see the [Migration from 4.x](#migration-from-4x) section if you previously relied on `register*Error` hooks.
 
 | Registry function | Success action | Args |
 | --- | --- | --- |
@@ -230,6 +233,10 @@ hooks.addAction(
 );
 ```
 
+### Tracking state across executions
+
+Need a session counter, a running log, or any state that accumulates *across* executions? Don't record it from a panel's React effect — response panels, status-bar items, and other surfaces unmount when they're not on screen, so a component-local effect stops counting the moment the user switches tabs. Initialize the state once at `WPGraphQLIDE_Window_Ready` and record it from `wpgraphql-ide.afterExecute`, which fires regardless of what's mounted. The full recipe, with a worked example, is in [Tracking state across executions](./tracking-state-across-executions.md).
+
 ## Migration from 4.x
 
 A quick lookup for extension authors upgrading from 4.x. Hooks not listed below are unchanged.
@@ -244,7 +251,7 @@ A quick lookup for extension authors upgrading from 4.x. Hooks not listed below 
 | `graphiql_external_fragments` (legacy alias) | **Removed** | Was an alias for the removed `wpgraphql_ide_external_fragments`. See above. |
 | `enqueue_graphiql_extension` (legacy alias) | **Removed** | Hook `wpgraphql_ide_enqueue_script` directly. |
 | `graphiql_rendered` (legacy alias) | **Removed** | Use the JS action `wpgraphql-ide.rendered` via `wp.hooks.addAction`. |
-| `graphiql_toolbar_before_buttons` / `graphiql_toolbar_after_buttons` | **Removed** | Register toolbar items via the JS API: `registerDocumentEditorToolbarButton()`. See `ACCESS_FUNCTIONS.md`. |
+| `graphiql_toolbar_before_buttons` / `graphiql_toolbar_after_buttons` | **Removed** | Register toolbar items via the JS API: `registerDocumentEditorToolbarButton()`. See [`access-functions.md`](./access-functions.md). |
 | `wpgraphql_ide_capability_required` (filter) | **Behavior change** | The filter is now honored at every IDE permission check (REST, post-type/taxonomy caps, post-meta, user-meta, admin menu, public-endpoint trim). In 4.x it was consulted only at the admin-menu gate. Hosts already relying on it will find their override actually works end-to-end. |
 
 ### JavaScript
@@ -273,5 +280,5 @@ If you were extending the 4.x IDE, these new surfaces are worth knowing about:
 - **Notices** — `wpgraphql-ide.notice` / `wpgraphql-ide.notice.dismiss` JS actions for publishing toasts without coupling to the notice store.
 - **Execute lifecycle** — `wpgraphql-ide.executeRequest` (filter) and `wpgraphql-ide.executeResponse` (filter) hook the request and response on every execution, plus `wpgraphql-ide.afterExecute` (action) for analytics/observability.
 - **Localized data** — `wpgraphql_ide_localized_data` (PHP filter) is the canonical way to inject keys into `window.WPGRAPHQL_IDE_DATA`. Both the public-endpoint mode and the Document Settings module use it.
-- **Registry APIs** — twelve `register*` functions for panels, toolbar buttons, status-bar items, response-view modes, response/editor/document-tab actions, workspace tab types, topbar actions, and preferences. See `ACCESS_FUNCTIONS.md`.
+- **Registry APIs** — twelve `register*` functions for panels, toolbar buttons, status-bar items, response-view modes, response/editor/document-tab actions, workspace tab types, topbar actions, and preferences. See [`access-functions.md`](./access-functions.md).
 
