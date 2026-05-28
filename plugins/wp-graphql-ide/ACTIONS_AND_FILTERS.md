@@ -230,15 +230,17 @@ hooks.addAction(
 );
 ```
 
-### Pattern: state that outlives a panel
+### Pattern: state that outlives a component
 
-Response panels (`registerResponseExtensionTab`), status-bar items (`registerStatusBarItem`), and view modes (`registerResponseViewMode`) only mount **while their tab/mode is on screen**. Switching to another response tab unmounts the component and throws away its React state and effects. So anything that must accumulate *across* executions — a session HIT/MISS counter, a running request log, rolling latency averages — cannot live in a panel-local `useState` / `useEffect`: it silently stops updating the moment the user looks at a different tab, then resets when they come back.
+Most extension surfaces mount **conditionally** — an activity-bar panel renders while its panel is selected; response panels, view modes, and status-bar items while their tab/mode is on screen; editor-bottom tabs while expanded; workspace tabs while open. When a surface isn't visible the IDE unmounts its component and discards its React state and effects.
 
-Keep that state outside the component tree and drive it from a hook that always fires, regardless of what's mounted:
+Response panels are where this bites most often, but the rule is general: any state that must accumulate *across* executions, or otherwise persist independently of what's on screen — a session HIT/MISS counter, a running request log, rolling latency averages, a computation cached and shared between surfaces — cannot live in a component-local `useState` / `useEffect`. It silently stops updating the moment the surface unmounts, then resets when it remounts.
 
-1. **Wire it up once at `WPGraphQLIDE_Window_Ready`.** That DOM event fires after `window.WPGraphQLIDE` (stores, registries, the `hooks` bus) is assembled. One-time setup belongs here — it runs exactly once per page and doesn't depend on any panel being mounted.
-2. **Record from `wpgraphql-ide.afterExecute`, not from a panel effect.** The action fires once per completed execution whether or not your panel is visible (and never for aborted or short-circuited runs, so they don't miscount).
-3. **Hold the running total in a module-scoped value** with a small subscribe API, and read it from the panel with React's `useSyncExternalStore`. The panel becomes display-only — remounting it just re-subscribes to the already-current total.
+Keep that state outside the component tree and drive it from something that runs regardless of what's mounted:
+
+1. **Wire it up once at `WPGraphQLIDE_Window_Ready`.** That DOM event fires after `window.WPGraphQLIDE` (stores, registries, the `hooks` bus) is assembled. One-time setup belongs here — it runs exactly once per page and doesn't depend on any surface being mounted.
+2. **Update it from a hook or subscription that fires regardless of UI.** For per-execution data that's `wpgraphql-ide.afterExecute` (fires once per completed execution; never for aborted or short-circuited runs, so they don't miscount). Other sources work the same way — a `@wordpress/data` store subscription, an IDE lifecycle action, etc. The point is that the source isn't a component effect.
+3. **Hold the value in a module-scoped store** with a small subscribe API, and read it from any surface with React's `useSyncExternalStore`. Those surfaces become display-only — remounting one just re-subscribes to the already-current value, and several surfaces can read the same store at once.
 
 ```js
 import { useSyncExternalStore } from 'react';
@@ -290,7 +292,7 @@ window.addEventListener('WPGraphQLIDE_Window_Ready', () => {
 });
 ```
 
-The IDE's built-in Smart Cache "this session" HIT/MISS counter works exactly this way: the panel renders the totals, but recording happens in an `afterExecute` listener registered at window-ready — so the count keeps climbing while you're looking at the Debug or Headers tab.
+The IDE's built-in Smart Cache "this session" HIT/MISS counter works exactly this way: the panel renders the totals, but recording happens in an `afterExecute` listener registered at window-ready — so the count keeps climbing while you're looking at the Debug or Headers tab. The same shape applies to any surface — an activity-bar panel that tabulates results, a status-bar badge showing a session aggregate, or a service shared by several surfaces. Only the registration call and the always-firing source change; the module-scoped store and `useSyncExternalStore` read stay the same.
 
 ## Migration from 4.x
 
