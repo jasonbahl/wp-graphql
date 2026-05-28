@@ -76,6 +76,15 @@ window.addEventListener('WPGraphQLIDE_Window_Ready', () => {
 
 Open the panel, run a query, switch to the Debug or Headers tab, run a few more, switch back — the average reflects every run, because the recording lives in the `afterExecute` listener, not in the panel.
 
+## A shipping example
+
+The bundled Smart Cache panel uses this exact pattern for its "this session" HIT/MISS counter, so it's worth reading end to end:
+
+- [`plugins/smart-cache-panel/src/smart-cache-panel.js`](../plugins/smart-cache-panel/src/smart-cache-panel.js) calls `initSmartCacheSessionTracking()` from its `WPGraphQLIDE_Window_Ready` listener.
+- [`plugins/smart-cache-panel/src/components/SmartCachePanel.jsx`](../plugins/smart-cache-panel/src/components/SmartCachePanel.jsx) keeps the running totals in a module-scoped `sessionStats` value, records each HIT/MISS from a `wpgraphql-ide.afterExecute` listener, and the panel reads them with `useSyncExternalStore`. Because recording lives in the listener rather than the panel, the counter keeps climbing while you're on the Debug or Headers tab.
+
+It also adds one wrinkle worth copying: it resets the totals when the cache-key inputs (query + variables + auth + operation) change, so the counter tracks the *current* query instead of mixing buckets.
+
 ## Why not just lift state to a parent component?
 
 Because there is no always-mounted React parent you can register into from an extension. Every surface the registries expose is mounted conditionally. A module-scoped store sits *above* React entirely, which is exactly what you need: it outlives every mount/unmount and is shared across surfaces.
