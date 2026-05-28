@@ -144,6 +144,8 @@ Most tabs map 1:1 onto a key in the GraphQL response `extensions` object — Tra
 
 The built-in `errors` and `headers` tabs use the same registry but flag themselves with `alwaysShow: true` (they describe the response itself, not response.extensions, so their data is sourced from synthetic slots — see `slotData` in `ResponseContent.jsx`).
 
+> **Panels mount only while their tab is active.** The `content` component is unmounted when the user switches to another response tab, which discards its React state and effects. A panel that just renders the current response is fine — it re-derives from `data`/`response` on remount. But state that must accumulate *across* executions (session counters, running logs) must live outside the component and be fed from `wpgraphql-ide.afterExecute`, not a panel effect. See [Pattern: state that outlives a panel](ACTIONS_AND_FILTERS.md#pattern-state-that-outlives-a-panel).
+
 **Parameters:**
 
 - `name` (string): Extension key in the response (e.g. `"debug"`, `"graphqlSmartCache"`).
@@ -206,6 +208,8 @@ registerEditorBottomTab('inspector', {
 ## registerStatusBarItem
 
 Registers an item in the response toolbar's status row — alongside the built-in HTTP status code, duration, size, resolver count, and N+1 warning badges. Useful for surfacing live response signals: cache hit/miss, schema warnings, custom counts, etc.
+
+> Status-bar items render only when a response is present and no request is in flight, and `render` re-runs from the current response each time. Don't accumulate cross-execution totals here — see [Pattern: state that outlives a panel](ACTIONS_AND_FILTERS.md#pattern-state-that-outlives-a-panel).
 
 **Parameters:**
 

@@ -230,6 +230,68 @@ hooks.addAction(
 );
 ```
 
+### Pattern: state that outlives a panel
+
+Response panels (`registerResponseExtensionTab`), status-bar items (`registerStatusBarItem`), and view modes (`registerResponseViewMode`) only mount **while their tab/mode is on screen**. Switching to another response tab unmounts the component and throws away its React state and effects. So anything that must accumulate *across* executions — a session HIT/MISS counter, a running request log, rolling latency averages — cannot live in a panel-local `useState` / `useEffect`: it silently stops updating the moment the user looks at a different tab, then resets when they come back.
+
+Keep that state outside the component tree and drive it from a hook that always fires, regardless of what's mounted:
+
+1. **Wire it up once at `WPGraphQLIDE_Window_Ready`.** That DOM event fires after `window.WPGraphQLIDE` (stores, registries, the `hooks` bus) is assembled. One-time setup belongs here — it runs exactly once per page and doesn't depend on any panel being mounted.
+2. **Record from `wpgraphql-ide.afterExecute`, not from a panel effect.** The action fires once per completed execution whether or not your panel is visible (and never for aborted or short-circuited runs, so they don't miscount).
+3. **Hold the running total in a module-scoped value** with a small subscribe API, and read it from the panel with React's `useSyncExternalStore`. The panel becomes display-only — remounting it just re-subscribes to the already-current total.
+
+```js
+import { useSyncExternalStore } from 'react';
+
+window.addEventListener('WPGraphQLIDE_Window_Ready', () => {
+	const { hooks, registerResponseExtensionTab } = window.WPGraphQLIDE;
+
+	// Module-scoped — survives panel mount/unmount; cleared on page reload.
+	let stats = { count: 0, totalMs: 0 };
+	const subscribers = new Set();
+	const subscribe = (fn) => {
+		subscribers.add(fn);
+		return () => subscribers.delete(fn);
+	};
+	const getSnapshot = () => stats;
+
+	// Always fires, regardless of which response tab is mounted.
+	hooks.addAction(
+		'wpgraphql-ide.afterExecute',
+		'my-plugin/latency',
+		({ duration }) => {
+			stats = {
+				count: stats.count + 1,
+				totalMs: stats.totalMs + duration,
+			};
+			subscribers.forEach((fn) => fn());
+		}
+	);
+
+	// Display-only: it reads the running total, it never records it.
+	const AvgLatencyPanel = () => {
+		const s = useSyncExternalStore(subscribe, getSnapshot);
+		if (!s.count) {
+			return null;
+		}
+		return (
+			<p>
+				Avg {(s.totalMs / s.count).toFixed(0)} ms over {s.count} runs
+				this session
+			</p>
+		);
+	};
+
+	registerResponseExtensionTab(
+		'myLatency',
+		{ title: 'Latency', content: AvgLatencyPanel, alwaysShow: true },
+		60
+	);
+});
+```
+
+The IDE's built-in Smart Cache "this session" HIT/MISS counter works exactly this way: the panel renders the totals, but recording happens in an `afterExecute` listener registered at window-ready — so the count keeps climbing while you're looking at the Debug or Headers tab.
+
 ## Migration from 4.x
 
 A quick lookup for extension authors upgrading from 4.x. Hooks not listed below are unchanged.
