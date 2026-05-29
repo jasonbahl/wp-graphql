@@ -34,6 +34,5 @@ npm run -w @wpgraphql/wp-graphql-acf lint:php:stan   # PHPStan
 
 Additional documentation lives in [`docs/`](docs/).
 
----
+<!-- Maintainer note: starting point — expand with architecture notes (field-type → GraphQL-type mapping, the ACF field-group registry integration) as needed. -->
 
-This is a starting point — expand with architecture notes (field-type → GraphQL-type mapping, the ACF field-group registry integration) as they're needed.

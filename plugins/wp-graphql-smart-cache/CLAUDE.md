@@ -22,12 +22,17 @@ npm run -w @wpgraphql/wp-graphql-smart-cache test:codecept:functional
 
 ## Linting and Static Analysis
 
-PHP coding standards and static analysis are defined as Composer scripts run inside the wp-env container: `check-cs`, `fix-cs`, `phpstan` (plus `build-plugin` / `zip` for packaging).
+PHPCS and PHPStan are Composer scripts. They're static analysis (no running WordPress needed), so run them from `plugins/wp-graphql-smart-cache/` after `composer install` — same as CI does:
+
+```bash
+composer check-cs    # PHPCS (WordPress Coding Standards)
+composer fix-cs      # PHPCBF autofix
+composer phpstan     # PHPStan (config in phpstan.neon.dist)
+```
 
 ## Reference docs
 
 Additional documentation lives in [`docs/`](docs/).
 
----
+<!-- Maintainer note: starting point — expand with architecture notes (cache key/tag model, invalidation flow, the Query Analyzer) as needed. -->
 
-This is a starting point — expand with architecture notes (cache key/tag model, invalidation flow, the Query Analyzer) as they're needed.
