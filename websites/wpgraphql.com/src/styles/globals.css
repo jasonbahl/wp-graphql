@@ -61,6 +61,19 @@
   --color-emerald-800: hsl(163 90% 13%);
   --color-emerald-900: hsl(164 88% 9%);
 
+  /* ── Rose (WPGraphQL Smart Cache sibling-brand accent) — shared navy foundation, rose accent.
+     Values from the Smart Cache brand guide (sc-theme/family-globals.css); 50/100/800/900 extrapolated. ── */
+  --color-rose-50:  hsl(344 100% 97%);
+  --color-rose-100: hsl(343 100% 90%);
+  --color-rose-200: hsl(343 97% 73%);
+  --color-rose-300: hsl(343 90% 60%);   /* SMART CACHE PRIMARY ACCENT (dark mode) — #F43F5E */
+  --color-rose-400: hsl(343 80% 50%);   /* SMART CACHE PRIMARY ACCENT (light mode) */
+  --color-rose-500: hsl(343 82% 42%);
+  --color-rose-600: hsl(343 80% 35%);
+  --color-rose-700: hsl(343 74% 30%);
+  --color-rose-800: hsl(343 70% 24%);
+  --color-rose-900: hsl(343 66% 17%);
+
   /* ── Typography — fonts ──
      `--font-bricolage` and `--font-dm-mono` are injected onto <html> by next/font/google
      in src/lib/fonts.js. We provide system fallbacks here. */
@@ -296,6 +309,17 @@
   --primary:        158 64% 32%;  /* emerald-400 */
   --ring:           158 64% 32%;
   --glow:           158 64% 32%;
+}
+
+.theme-smart-cache {
+  --primary:        343 90% 60%;  /* rose-300 */
+  --ring:           343 90% 60%;
+  --glow:           343 90% 60%;
+}
+.light .theme-smart-cache {
+  --primary:        343 80% 50%;  /* rose-400 */
+  --ring:           343 80% 50%;
+  --glow:           343 80% 50%;
 }
 
 /* ============================================================
