@@ -11,6 +11,10 @@ import {
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { WPGraphQLIDELogoMark } from "@/components/IDE/WPGraphQLIDELogo"
+import {
+  SectionHeading as BaseSectionHeading,
+  VisualPanel,
+} from "@/components/extensions/SectionHeading"
 
 const WP_ORG_URL = "https://wordpress.org/plugins/wpgraphql-ide/"
 // Repo root — used for issues / security policy (those live at the monorepo level).
@@ -21,55 +25,9 @@ const GITHUB_IDE_URL =
 const DOCS_EXTENDING_URL =
   "https://github.com/wp-graphql/wp-graphql/blob/main/plugins/wp-graphql-ide/docs/extending-the-ide.md"
 
-/* ── Section heading — icon eyebrow with rules + a two-line title whose
-   second line is fully accent-colored (WPGraphQL / RadiQL style). ──────── */
-function Eyebrow({ children, align = "center" }) {
-  const rule = "h-px w-10 bg-gradient-to-r from-transparent to-primary/40"
-  return (
-    <div
-      className={`flex items-center gap-3 ${
-        align === "center" ? "justify-center" : "justify-start"
-      }`}
-    >
-      {align === "center" && (
-        <span className={`hidden sm:block ${rule}`} aria-hidden="true" />
-      )}
-      <span className="inline-flex items-center gap-2 font-mono text-xs font-medium uppercase tracking-widest text-primary">
-        <CommandLineIcon className="size-3.5" aria-hidden="true" />
-        {children}
-      </span>
-      <span
-        className={`${align === "center" ? "hidden sm:block " : ""}h-px ${
-          align === "center"
-            ? "w-10 bg-gradient-to-l from-transparent to-primary/40"
-            : "w-16 bg-gradient-to-r from-primary/40 to-transparent"
-        }`}
-        aria-hidden="true"
-      />
-    </div>
-  )
-}
-
-function SectionHeading({ eyebrow, lead, accent, intro, align = "center" }) {
-  return (
-    <div className={align === "center" ? "mx-auto max-w-3xl text-center" : ""}>
-      <Eyebrow align={align}>{eyebrow}</Eyebrow>
-      <h2 className="mt-4 text-display-sm font-extrabold tracking-tight text-foreground sm:text-display-md">
-        {lead}
-        <br />
-        <span className="text-primary">{accent}</span>
-      </h2>
-      {intro && (
-        <p
-          className={`mt-4 text-base text-muted-foreground sm:text-lg ${
-            align === "center" ? "" : "max-w-xl"
-          }`}
-        >
-          {intro}
-        </p>
-      )}
-    </div>
-  )
+// IDE sections use the command-line glyph in the eyebrow.
+function SectionHeading(props) {
+  return <BaseSectionHeading icon={CommandLineIcon} {...props} />
 }
 
 function Hero() {
@@ -189,16 +147,6 @@ function Kbd({ children }) {
     <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[0.65rem] text-primary">
       {children}
     </kbd>
-  )
-}
-
-function VisualPanel({ children, className = "" }) {
-  return (
-    <div
-      className={`ide-bg ide-border ide-text mt-6 rounded-lg border p-4 font-mono text-xs leading-relaxed ${className}`}
-    >
-      {children}
-    </div>
   )
 }
 

@@ -48,6 +48,19 @@
   --color-violet-800: hsl(268 58% 19%);
   --color-violet-900: hsl(268 54% 13%);
 
+  /* ── Emerald (WPGraphQL for ACF sibling-brand accent) — shared navy foundation, emerald accent.
+     Values from the ACF brand guide (acf-theme/family-globals.css); -800/-900 extrapolated. ── */
+  --color-emerald-50:  hsl(151 81% 94%);
+  --color-emerald-100: hsl(152 76% 68%);
+  --color-emerald-200: hsl(156 72% 53%);
+  --color-emerald-300: hsl(160 84% 39%);   /* ACF PRIMARY ACCENT (dark mode) — #10B981 */
+  --color-emerald-400: hsl(158 64% 32%);   /* ACF PRIMARY ACCENT (light mode) */
+  --color-emerald-500: hsl(160 84% 25%);
+  --color-emerald-600: hsl(162 88% 19%);
+  --color-emerald-700: hsl(162 91% 17%);
+  --color-emerald-800: hsl(163 90% 13%);
+  --color-emerald-900: hsl(164 88% 9%);
+
   /* ── Typography — fonts ──
      `--font-bricolage` and `--font-dm-mono` are injected onto <html> by next/font/google
      in src/lib/fonts.js. We provide system fallbacks here. */
@@ -272,6 +285,17 @@
   --ring:           268 65% 47%;
   --glow:           268 65% 47%;
   --ide-status-bar: 268 63% 37%;  /* violet-600 */
+}
+
+.theme-acf {
+  --primary:        160 84% 39%;  /* emerald-300 */
+  --ring:           160 84% 39%;
+  --glow:           160 84% 39%;
+}
+.light .theme-acf {
+  --primary:        158 64% 32%;  /* emerald-400 */
+  --ring:           158 64% 32%;
+  --glow:           158 64% 32%;
 }
 
 /* ============================================================
