@@ -80,7 +80,33 @@ const ideMark = `<svg viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org
   <rect x="106" y="137" width="34" height="2" rx="1" fill="rgba(255,255,255,0.25)"/>
 </svg>`
 
+const scMark = `<svg viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="160" height="160" rx="36" fill="#0C1220"/>
+  <circle cx="80" cy="80" r="60" stroke="#F43F5E" stroke-width="1.5" fill="none" opacity="0.18"/>
+  <circle cx="80" cy="80" r="44" stroke="#F43F5E" stroke-width="2" fill="none" opacity="0.40"/>
+  <circle cx="80" cy="80" r="28" stroke="#F43F5E" stroke-width="2.5" fill="none" opacity="0.72"/>
+  <path d="M 80 80 L 130 30 A 71 71 0 0 0 151 80 Z" fill="#F43F5E" opacity="0.05"/>
+  <line x1="80" y1="80" x2="130" y2="30" stroke="#F43F5E" stroke-width="1" stroke-linecap="round" opacity="0.2"/>
+  <circle cx="116" cy="44" r="2.5" fill="#FB7185" opacity="0.75"/>
+  <circle cx="80" cy="80" r="9" fill="#F43F5E" opacity="0.93"/>
+  <circle cx="80" cy="80" r="4.5" fill="#FFF1F2" opacity="0.87"/>
+</svg>`
+
 const products = [
+  {
+    slug: "wp-graphql-smart-cache",
+    accent: "#F43F5E",
+    accentRgb: "244,63,94",
+    mark: scMark,
+    name: "WPGraphQL",
+    accentWord: "Smart Cache",
+    ext: "jpg",
+    seed: 37, // match the Smart Cache banner constellation
+    sources: [
+      `${CLEANSHOT}/media_hvrY0MngK5/CleanShot 2026-06-03 at 11.35.12.png`,
+      `${CLEANSHOT}/media_AVSs0tQGJl/CleanShot 2026-06-03 at 11.35.36.png`,
+    ],
+  },
   {
     slug: "wp-graphql-ide",
     accent: "#8B5CF6",
