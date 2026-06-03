@@ -30,6 +30,7 @@ const products = [
     tagline: "GraphQL for WordPress",
     minimal: true,
     graph: true, // constellation banner: graph of nodes radiating from the logo
+    iconBg: "#0E1628", // fill the icon as a navy rounded square (the elephant mark is a circle)
   },
   {
     slug: "wp-graphql-ide",
@@ -71,7 +72,11 @@ const products = [
 
 const iconHtml = (p, size) => `<!doctype html><html><head><meta charset="utf-8">
 <style>html,body{margin:0;padding:0;background:transparent}
-.m{width:${size}px;height:${size}px}.m svg{display:block;width:100%;height:100%}</style></head>
+.m{width:${size}px;height:${size}px${
+  p.iconBg
+    ? `;background:${p.iconBg};border-radius:${Math.round(size * 0.225)}px;overflow:hidden`
+    : ""
+}}.m svg{display:block;width:100%;height:100%}</style></head>
 <body><div class="m">${p.mark}</div></body></html>`
 
 const bannerHtml = (p, w, h) => {
