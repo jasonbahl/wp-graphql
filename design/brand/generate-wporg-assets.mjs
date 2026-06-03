@@ -114,7 +114,9 @@ const products = [
     name: "WPGraphQL",
     accentWord: "IDE",
     tagline: "A modern GraphQL IDE for WordPress",
-    minimal: true, // text-free banner: centered mark + glow
+    minimal: true,
+    graph: true,
+    seed: 11,
   },
   {
     slug: "wp-graphql-acf",
@@ -124,7 +126,9 @@ const products = [
     name: "WPGraphQL",
     accentWord: "ACF",
     tagline: "Advanced Custom Fields, in GraphQL",
-    minimal: true, // text-free banner: centered mark + glow
+    minimal: true,
+    graph: true,
+    seed: 23,
   },
   {
     slug: "wp-graphql-smart-cache",
@@ -134,7 +138,9 @@ const products = [
     name: "WPGraphQL",
     accentWord: "Smart Cache",
     tagline: "Caching & invalidation for WPGraphQL",
-    minimal: true, // text-free banner: centered mark + glow
+    minimal: true,
+    graph: true,
+    seed: 37,
   },
 ]
 
@@ -315,7 +321,7 @@ const graphBannerHtml = (p, w, h) => {
   .mark svg{display:block;width:100%;height:100%}
 </style></head>
 <body><div class="banner">
-  <div class="net">${constellationSvg(w, h, p.accentRgb)}</div>
+  <div class="net">${constellationSvg(w, h, p.accentRgb, p.seed)}</div>
   <div class="glow"></div>
   <div class="mark">${p.mark}</div>
 </div></body></html>`
