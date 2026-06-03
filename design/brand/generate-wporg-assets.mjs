@@ -98,6 +98,7 @@ const products = [
     name: "WPGraphQL",
     accentWord: "IDE",
     tagline: "A modern GraphQL IDE for WordPress",
+    minimal: true, // text-free banner: centered mark + glow
   },
   {
     slug: "wp-graphql-acf",
@@ -117,6 +118,7 @@ const products = [
     name: "WPGraphQL",
     accentWord: "Smart Cache",
     tagline: "Caching & invalidation for WPGraphQL",
+    minimal: true, // text-free banner: centered mark + glow
   },
 ]
 
