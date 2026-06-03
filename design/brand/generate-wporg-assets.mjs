@@ -107,6 +107,7 @@ const products = [
     name: "WPGraphQL",
     accentWord: "ACF",
     tagline: "Advanced Custom Fields, in GraphQL",
+    minimal: true, // text-free banner: centered mark + glow
   },
   {
     slug: "wp-graphql-smart-cache",
@@ -158,20 +159,61 @@ const bannerHtml = (p, w, h) => {
 </div></body></html>`
 }
 
+// CLI: pass plugin slugs to limit which products are generated, and `--banners`
+// to skip icons. e.g. `node generate-wporg-assets.mjs wp-graphql-acf --banners`.
+const argv = process.argv.slice(2)
+const flags = argv.filter((a) => a.startsWith("--"))
+const slugs = argv.filter((a) => !a.startsWith("--"))
+const wantIcons = !flags.includes("--banners")
+const selected = slugs.length
+  ? products.filter((p) => slugs.includes(p.slug))
+  : products
+
+// Text-free banner: the brand mark centered on the navy field with an accent
+// glow halo and faint ambient cards bleeding in from the sides for depth.
+const minimalBannerHtml = (p, w, h) => {
+  const mark = Math.round(h * 0.6)
+  return `<!doctype html><html><head><meta charset="utf-8">
+<style>
+  html,body{margin:0;padding:0}
+  .banner{width:${w}px;height:${h}px;background:#080D18;position:relative;overflow:hidden;
+    display:flex;align-items:center;justify-content:center}
+  .amb{position:absolute;top:50%;width:${Math.round(h * 0.95)}px;height:${Math.round(h * 1.5)}px;
+    border-radius:${Math.round(h * 0.12)}px;background:#0C1220;opacity:0.55;
+    filter:blur(${Math.round(h * 0.03)}px)}
+  .amb.l{left:${-Math.round(h * 0.35)}px;transform:translateY(-50%) rotate(-8deg)}
+  .amb.r{right:${-Math.round(h * 0.35)}px;transform:translateY(-50%) rotate(8deg)}
+  .glow{position:absolute;inset:0;pointer-events:none;background:
+    radial-gradient(ellipse ${Math.round(w * 0.28)}px ${Math.round(h * 0.95)}px at 50% 50%,
+      rgba(${p.accentRgb},0.22) 0%, rgba(${p.accentRgb},0.07) 42%, transparent 70%)}
+  .mark{position:relative;width:${mark}px;height:${mark}px;
+    filter:drop-shadow(0 0 ${Math.round(h * 0.09)}px rgba(${p.accentRgb},0.5))
+           drop-shadow(0 0 ${Math.round(h * 0.03)}px rgba(${p.accentRgb},0.35))}
+  .mark svg{display:block;width:100%;height:100%}
+</style></head>
+<body><div class="banner">
+  <div class="amb l"></div><div class="amb r"></div>
+  <div class="glow"></div>
+  <div class="mark">${p.mark}</div>
+</div></body></html>`
+}
+
 const run = async () => {
   const browser = await chromium.launch()
-  for (const p of products) {
-    for (const size of [256, 128]) {
-      const page = await browser.newPage({
-        viewport: { width: size, height: size },
-        deviceScaleFactor: 1,
-      })
-      await page.setContent(iconHtml(p, size), { waitUntil: "networkidle" })
-      await page.screenshot({
-        path: out(p.slug, `icon-${size}x${size}.png`),
-        omitBackground: true,
-      })
-      await page.close()
+  for (const p of selected) {
+    if (wantIcons) {
+      for (const size of [256, 128]) {
+        const page = await browser.newPage({
+          viewport: { width: size, height: size },
+          deviceScaleFactor: 1,
+        })
+        await page.setContent(iconHtml(p, size), { waitUntil: "networkidle" })
+        await page.screenshot({
+          path: out(p.slug, `icon-${size}x${size}.png`),
+          omitBackground: true,
+        })
+        await page.close()
+      }
     }
     for (const [w, h] of [
       [1544, 500],
@@ -181,12 +223,13 @@ const run = async () => {
         viewport: { width: w, height: h },
         deviceScaleFactor: 1,
       })
-      await page.setContent(bannerHtml(p, w, h), { waitUntil: "networkidle" })
+      const html = p.minimal ? minimalBannerHtml(p, w, h) : bannerHtml(p, w, h)
+      await page.setContent(html, { waitUntil: "networkidle" })
       await page.evaluate(() => document.fonts.ready)
       await page.screenshot({ path: out(p.slug, `banner-${w}x${h}.png`) })
       await page.close()
     }
-    console.log(`generated assets for ${p.slug}`)
+    console.log(`generated ${wantIcons ? "assets" : "banners"} for ${p.slug}`)
   }
   await browser.close()
 }
